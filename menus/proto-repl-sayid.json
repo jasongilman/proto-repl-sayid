@@ -1,0 +1,26 @@
+{
+  "context-menu": {
+    "atom-text-editor": [
+      {
+        "label": "Toggle proto-repl-sayid",
+        "command": "proto-repl-sayid:toggle"
+      }
+    ]
+  },
+  "menu": [
+    {
+      "label": "Packages",
+      "submenu": [
+        {
+          "label": "proto-repl-sayid",
+          "submenu": [
+            {
+              "label": "Toggle",
+              "command": "proto-repl-sayid:toggle"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
