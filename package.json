@@ -2,17 +2,25 @@
   "name": "proto-repl-sayid",
   "main": "./lib/proto-repl-sayid",
   "version": "0.0.0",
-  "description": "A short description of your package",
+  "description": "Proto REPL Sayid integration that provides a visual call stack and debugging",
   "keywords": [
+    "clojure",
+    "lisp",
+    "interactive",
+    "graph",
+    "visual"
   ],
-  "activationCommands": {
-    "atom-workspace": "proto-repl-sayid:toggle"
-  },
-  "repository": "https://github.com/atom/proto-repl-sayid",
+  "repository": "https://github.com/jasongilman/proto-repl-sayid",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
   },
+  "package-dependencies": {
+    "proto-repl": "latest"
+  },
   "dependencies": {
+    "atom-space-pen-views": "2.2.0",
+    "resizable": "1.1.1",
+    "vis": "4.15.0"
   }
 }
