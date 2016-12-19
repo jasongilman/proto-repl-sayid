@@ -27,27 +27,29 @@ module.exports = ProtoReplSayid =
         @graphView = view
         @graphView.display(data)
 
+  # Helper for defining a command that calls a function on a namespace.
+  addCommand: (name, ns, fn)->
+    @subscriptions.add atom.commands.add 'atom-workspace', "proto-repl-sayid:#{name}": =>
+      window.protoRepl.executeCode("(do (require '#{ns}) (#{ns}/#{fn}))")
+
   activate: (state) ->
     console.log("Proto REPL Sayid activated")
     @registerExtension()
 
     @subscriptions = new CompositeDisposable
-    @subscriptions.add atom.commands.add 'atom-workspace', 'proto-repl-sayid:show-traced-namespaces': =>
-      window.protoRepl.executeCode("(do (require 'proto-repl-sayid.core)
-                                        (proto-repl-sayid.core/show-traced-namespaces))")
+    @addCommand("show-traced-namespaces", "proto-repl-sayid.core", "show-traced-namespaces")
+    @addCommand("trace-project-namespaces", "proto-repl-sayid.core", "trace-all-namespaces-in-project")
+    @addCommand("reset-trace", "com.billpiel.sayid.core", "ws-reset!")
+    @addCommand("clear-captured", "com.billpiel.sayid.core", "ws-clear-log!")
+    @addCommand("display-last-captured", "proto-repl-sayid.core", "display-last-captured")
+    @addCommand("display-all-captured", "proto-repl-sayid.core", "display-all-captured")
 
-    @subscriptions.add atom.commands.add 'atom-workspace', 'proto-repl-sayid:trace-project-namespaces': =>
-      window.protoRepl.executeCode("(do (require 'proto-repl-sayid.core)
-                                        (proto-repl-sayid.core/trace-all-namespaces-in-project))")
-
-    @subscriptions.add atom.commands.add 'atom-workspace', 'proto-repl-sayid:reset-traced': =>
-      window.protoRepl.executeCode("(do (require 'com.billpiel.sayid.core)
-                                        (com.billpiel.sayid.core/ws-reset!))")
 
     atom.workspace.onDidDestroyPaneItem (event)=>
       item = event.item
       pane = event.pane
       if item instanceof GraphView
+        console.log "Graph view was closed"
         @graphView = null
 
     atom.workspace.addOpener (uriToOpen) ->

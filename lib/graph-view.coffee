@@ -1,6 +1,11 @@
 {$, $$$, ScrollView}  = require 'atom-space-pen-views'
 vis = require 'vis'
 
+# TODO how do we make jQuery available for qtip without doing this
+jQuery = require('jquery')
+window.jQuery = jQuery
+qtip = require 'qtip2'
+
 PROTOCOL = "proto-repl-sayid:"
 NAME = "Sayid Call Graph"
 
@@ -38,19 +43,37 @@ module.exports =
     serialize: ->
       deserializer : 'GraphView'
 
+    displayNodeInlineData: (id)->
+      console.log("Node clicked", id)
+      window.protoRepl.executeCode "(proto-repl-sayid.core/retrieve-node-inline-data #{id})",
+        displayInRepl: false,
+        resultHandler: (result)->
+          console.log("Retrieved inline data", result)
+          if result.error
+            console.error(result.error)
+            atom.notifications.addError "Unable to retrieve node data. See console error message", dismissable: true
+          else
+            inlineData = window.protoRepl.parseEdn(result.value)
+
+
     display: (data)->
-      console.log("Received data", data)
+      console.log("Received data of #{data.nodes.length} nodes and #{data.edges.length} edges")
+      # Fail out early if there is no data to display
+      if !data.nodes
+        atom.notifications.addWarning "No data was captured for display", dismissable: true
+        return
+
       if @network
         @network = @network.destroy()
       else
         @graphDiv = document.createElement("div")
         @html $ @graphDiv
 
+
       # create an array with nodes
       # nodes should be objects with id and label
       nodes = new vis.DataSet(data.nodes)
 
-      #create an array with edges
       # Edges should be objects from and to
       edges = new vis.DataSet(data.edges)
 
@@ -59,15 +82,10 @@ module.exports =
         nodes: nodes,
         edges: edges
 
-      # TODO options should probably be a default. I like the idea of still allowing
-      # the clojure code to specify optiosn here as it could override some of the settings
-      # if needed. Pushing more of the functionality to Clojure might be good.
-      options = data.options || DEFAULT_OPTIONS
-
       # Capture events that were passed. This is not a standard visjs key
+      options = data.options || DEFAULT_OPTIONS
       events = options.events
       delete options.events
-      console.log "Options", options
 
       @network = new vis.Network(@graphDiv, graphData, options);
 
@@ -77,9 +95,16 @@ module.exports =
       # - Display an inline view at that file and line.
       # - Def buttons should be tied back to a handler with a sayid id.
       # - On click of def button based on sayid id define vars for each of the args.
+      @network.on "doubleClick", (eventData)=>
+        console.log "Double click event data", eventData
+        if eventData.nodes && eventData.nodes[0]
+          @displayNodeInlineData(eventData.nodes[0])
 
-      # TODO won't need this explicitly anymore but leaving it in would be handy.
-      # Handle any event handlers
+      # TODO temporarily here while trying to get popups to work
+      @network.on "showPopup", (eventData)->
+        console.log("Popup", eventData)
+
+      # Handle any event handlers specified via options
       if events
         for event, handler of events
           @network.on event, (eventData)->
@@ -96,7 +121,7 @@ module.exports =
                   window.protoRepl.stderr("Failure to execute handler #{handler}: #{result.error}")
 
     getTitle: ->
-      @name
+      NAME
 
     showLoading: ->
       @html $$$ ->
