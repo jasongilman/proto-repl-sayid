@@ -18,7 +18,7 @@
  ;; Mini test
  (do
   (sayid/ws-add-trace-ns! test-ns)
-  (test-ns/chew 20)
+  (test-ns/chew 50)
   (display-last-captured))
  (display-all-captured)
 
@@ -58,21 +58,21 @@
                            (mapv extract-name-children %)))))
 
 ;; TODO can potentially get rid of this if not using vis.js
-(defn- extract-edges-and-nodes
-  "Extracts edges and nodes for display in Proto REPL Charts graph."
-  [node]
-  (let [{:keys [id name children]} node
-        child-edges-and-nodes (mapv extract-edges-and-nodes children)
-        current-node {:id id
-                      :label (str/replace name "/" "\n")
-                      :group (str/replace name #"/.*" "")}]
-    {:edges (vec (concat (mapv #(hash-map :from id :to (:id %))
-                               children)
-                         (mapcat :edges child-edges-and-nodes)))
-     :nodes (reduce #(into %1 %2)
-                    #{current-node}
-                    (map :nodes child-edges-and-nodes))
-     :options {}}))
+; (defn- extract-edges-and-nodes
+;   "Extracts edges and nodes for display in Proto REPL Charts graph."
+;   [node]
+;   (let [{:keys [id name children]} node
+;         child-edges-and-nodes (mapv extract-edges-and-nodes children)
+;         current-node {:id id
+;                       :label (str/replace name "/" "\n")
+;                       :group (str/replace name #"/.*" "")}]
+;     {:edges (vec (concat (mapv #(hash-map :from id :to (:id %))
+;                                children)
+;                          (mapcat :edges child-edges-and-nodes)))
+;      :nodes (reduce #(into %1 %2)
+;                     #{current-node}
+;                     (map :nodes child-edges-and-nodes))
+;      :options {}}))
 
 ;; TODO temporarily here to count how many nodes are being displayed
 (defn get-nodes
@@ -101,14 +101,18 @@
                   (apply merge-with into))]
     [:proto-repl-code-execution-extension "proto-repl-sayid" data]))
 
+(defn- find-node-by-id
+  [id]
+  (-> (sayid/ws-query [:id (keyword (str id))])
+      :children
+      first))
+
 ;; TODO this should return data in format
 ;; ["text for display", {button options}, [childtree1, childtree2, ...]]
 (defn retrieve-node-inline-data
   "Retrieves information about a sayid node for display inline"
   [id]
-  (when-let [snode (-> (sayid/ws-query [:id (keyword (str id))])
-                       :children
-                       first)]
+  (when-let [snode (find-node-by-id id)]
     (let [{:keys [return arg-map]} snode
           {:keys [line file]} (or (:meta snode) (:src-pos snode))
           file (.getPath (.getResource (clojure.lang.RT/baseLoader) file))]
@@ -116,3 +120,11 @@
        :line line
        :args arg-map
        :return return})))
+
+(defn node-tooltip-data
+  [id]
+  (when-let [snode (find-node-by-id id)]
+    (let [{:keys [return arg-map]} snode]
+      (format "<p><h1>Arguments</h1><p><code></code></p>
+                  <h1>Returned:</h1><code>%s</code><p>")
+      (pr-str arg-map) (pr-str return))))

@@ -131,6 +131,7 @@ module.exports =
       #   return
 
       @graphDiv = document.createElement("div")
+      d3.select(@graphDiv).attr("class", "sayid-holder")
       @html $ @graphDiv
 
       # Calculate total nodes, max label length
@@ -145,6 +146,11 @@ module.exports =
       viewerWidth = $(@graphDiv).width()
       viewerHeight = $(@graphDiv).height()
       tree = d3.layout.tree().size([viewerHeight, viewerWidth])
+
+      # Define the div for the tooltip
+      tooltipDiv = d3.select(@graphDiv).append("div")
+          .attr("class", "sayid-tooltip")
+          .style("opacity", 0);
 
       # define a d3 diagonal projection for use by the node paths later on.
       diagonal = d3.svg.diagonal().projection((d)-> [d.y, d.x])
@@ -263,6 +269,35 @@ module.exports =
             )
             .text((d)->d.name)
             .style("fill-opacity", 0)
+            .on("mouseover", (d)->
+              # TODO we should do this on a timer that will display a tool tip if they leave the mouse in there
+              # for long enough.
+              # window.protoRepl.executeCode("(proto-repl-sayid.core/node-tooltip-data #{d.id})",
+              #   displayInRepl: false # autoEval only displays inline
+              #   resultHandler: (result, options)=>
+              #     if result.error
+              #       # TODO popup error
+              #       console.error result.error
+              #     else
+              #       tooltipDiv.transition()
+              #           .duration(200)
+              #           .style("opacity", .9)
+              #       tooltipDiv.html("<bold>#{d.name}</bold>")
+              #           .style("left", (d3.event.layerX) + "px")
+              #           .style("top", (d3.event.layerY + 28) + "px")
+              # )
+              tooltipDiv.transition()
+                  .duration(200)
+                  .style("opacity", .9)
+              tooltipDiv.html("<bold>#{d.name}</bold>")
+                  .style("left", (d3.event.layerX) + "px")
+                  .style("top", (d3.event.layerY + 28) + "px")
+            )
+            .on("mouseout", (d)->
+              tooltipDiv.transition()
+                  .duration(500)
+                  .style("opacity", 0)
+            )
 
         # phantom node to give us mouseover in a radius around it
         nodeEnter.append("circle")
@@ -271,6 +306,7 @@ module.exports =
             .attr("opacity", 0.2) # change this to zero to hide the target area
             .style("fill", "red")
             .attr('pointer-events', 'mouseover')
+
             # TODO can probably get rid of this
             # .on("mouseover", (node)->
             #     overCircle(node)

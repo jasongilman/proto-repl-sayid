@@ -43,12 +43,9 @@ module.exports = ProtoReplSayid =
     @addCommand("reset-trace", "com.billpiel.sayid.core", "ws-reset!")
     @addCommand("clear-captured", "com.billpiel.sayid.core", "ws-clear-log!")
     @addCommand("display-last-captured", "proto-repl-sayid.core", "display-last-captured")
-    @addCommand("display-all-captured", "proto-repl-sayid.core", "display-all-captured")
 
-    # TODO temporary to make testing tree easier
-    @subscriptions.add atom.commands.add 'atom-workspace', "proto-repl-sayid:show-tree": =>
-      @display({nodes: [], edges: []})
-
+    # TODO can we actually support this and do we want to do that?
+    # @addCommand("display-all-captured", "proto-repl-sayid.core", "display-all-captured")
 
     atom.workspace.onDidDestroyPaneItem (event)=>
       item = event.item
