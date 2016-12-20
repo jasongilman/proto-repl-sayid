@@ -44,6 +44,8 @@ PAN_SPEED = 200
 # Within 20px from edges will pan when dragging.
 PAN_BOUNDARY = 20
 
+NODE_TRANSITION_DURATION = 750
+
 
 
 PROTOCOL = "proto-repl-sayid:"
@@ -125,36 +127,34 @@ module.exports =
       #   atom.notifications.addWarning "No data was captured for display", dismissable: true
       #   return
 
+      # TODO identify and document all class variables
       @graphDiv = document.createElement("div")
       d3.select(@graphDiv).attr("class", "sayid-holder")
       @html $ @graphDiv
 
-      # Calculate total nodes, max label length
-      totalNodes = 0
-      maxLabelLength = 0
-      # Misc. variables
-      duration = 750
-      root = null
-      nextNodeId = 0
+      @maxLabelLength = 0
+
+      @root = null
+      @nextNodeId = 0
 
       # size of the diagram
-      viewerWidth = $(@graphDiv).width()
-      viewerHeight = $(@graphDiv).height()
-      tree = d3.layout.tree().size([viewerHeight, viewerWidth])
+      @viewerWidth = $(@graphDiv).width()
+      @viewerHeight = $(@graphDiv).height()
+      @tree = d3.layout.tree().size([@viewerHeight, @viewerWidth])
 
       # Define the div for the tooltip
-      tooltipDiv = d3.select(@graphDiv).append("div")
+      @tooltipDiv = d3.select(@graphDiv).append("div")
           .attr("class", "sayid-tooltip")
           .style("opacity", 0);
 
       # define a d3 diagonal projection for use by the node paths later on.
-      diagonal = d3.svg.diagonal().projection((d)-> [d.y, d.x])
+      # TODO rename to something like d3Diagnol
+      @diagonal = d3.svg.diagonal().projection((d)-> [d.y, d.x])
 
       # Call visit function to establish maxLabelLength
-      visit(treeData, (d)->
-        totalNodes++
-        nextNodeId++
-        maxLabelLength = Math.max(d.name.length, maxLabelLength)
+      visit(treeData, (d)=>
+        @nextNodeId++
+        @maxLabelLength = Math.max(d.name.length, @maxLabelLength)
       , (d)-> if d.children && d.children.length > 0 then d.children else null)
 
       # Define the zoom function for the zoomable tree
@@ -165,8 +165,8 @@ module.exports =
       zoomListener = d3.behavior.zoom().scaleExtent([0.1, 3]).on("zoom", zoom)
 
       baseSvg = d3.select(@graphDiv).append("svg")
-          # .attr("width", viewerWidth)
-          # .attr("height", viewerHeight)
+          # .attr("width", @viewerWidth)
+          # .attr("height", @viewerHeight)
           .attr("class", "sayid-overlay")
           .call(zoomListener)
 
@@ -184,14 +184,14 @@ module.exports =
           d._children = null
 
       # Function to center node when clicked/dropped so node doesn't get lost when collapsing/moving with large amount of children.
-      centerNode = (source)->
+      centerNode = (source)=>
         scale = zoomListener.scale()
         x = -1 * source.y0
         y = -1 * source.x0
-        x = x * scale + viewerWidth / 4
-        y = y * scale + viewerHeight / 2
+        x = x * scale + @viewerWidth / 4
+        y = y * scale + @viewerHeight / 2
         d3.select('g').transition()
-            .duration(duration)
+            .duration(NODE_TRANSITION_DURATION)
             .attr("transform", "translate(" + x + "," + y + ")scale(" + scale + ")")
         zoomListener.scale(scale)
         zoomListener.translate([x, y])
@@ -224,19 +224,19 @@ module.exports =
             levelWidth[level + 1] += n.children.length
             n.children.forEach((d)-> childCount(level + 1, d))
 
-        childCount(0, root)
+        childCount(0, @root)
         newHeight = d3.max(levelWidth) * 25 # 25 pixels per line
-        tree = tree.size([newHeight, viewerWidth])
+        @tree = @tree.size([newHeight, @viewerWidth])
 
         # Compute the new tree layout.
-        nodes = tree.nodes(root).reverse()
-        links = tree.links(nodes)
+        nodes = @tree.nodes(@root).reverse()
+        links = @tree.links(nodes)
 
         # Set widths between levels based on maxLabelLength.
-        nodes.forEach((d)->d.y = (d.depth * (maxLabelLength * 10)))
+        nodes.forEach((d)=>d.y = (d.depth * (@maxLabelLength * 10)))
 
         # Update the nodes…
-        node = @svgGroup.selectAll("g.node").data(nodes, (d)-> d.id || (d.id = ++nextNodeId))
+        node = @svgGroup.selectAll("g.node").data(nodes, (d)=> d.id || (d.id = ++@nextNodeId))
 
         # Enter any new nodes at the parent's previous position.
         nodeEnter = node.enter().append("g")
@@ -264,7 +264,7 @@ module.exports =
             )
             .text((d)->d.name)
             .style("fill-opacity", 0)
-            .on("mouseover", (d)->
+            .on("mouseover", (d)=>
               # TODO we should do this on a timer that will display a tool tip if they leave the mouse in there
               # for long enough.
               # window.protoRepl.executeCode("(proto-repl-sayid.core/node-tooltip-data #{d.id})",
@@ -281,15 +281,15 @@ module.exports =
               #           .style("left", (d3.event.layerX) + "px")
               #           .style("top", (d3.event.layerY + 28) + "px")
               # )
-              tooltipDiv.transition()
+              @tooltipDiv.transition()
                   .duration(200)
                   .style("opacity", .9)
-              tooltipDiv.html("<bold>#{d.name}</bold>")
+              @tooltipDiv.html("<bold>#{d.name}</bold>")
                   .style("left", (d3.event.layerX) + "px")
                   .style("top", (d3.event.layerY + 28) + "px")
             )
-            .on("mouseout", (d)->
-              tooltipDiv.transition()
+            .on("mouseout", (d)=>
+              @tooltipDiv.transition()
                   .duration(500)
                   .style("opacity", 0)
             )
@@ -329,7 +329,7 @@ module.exports =
 
         # Transition nodes to their new position.
         nodeUpdate = node.transition()
-            .duration(duration)
+            .duration(NODE_TRANSITION_DURATION)
             .attr("transform", (d)->
                 "translate(" + d.y + "," + d.x + ")"
             )
@@ -340,7 +340,7 @@ module.exports =
 
         # Transition exiting nodes to the parent's new position.
         nodeExit = node.exit().transition()
-            .duration(duration)
+            .duration(NODE_TRANSITION_DURATION)
             .attr("transform", (d)->
                 "translate(" + source.y + "," + source.x + ")"
             )
@@ -359,12 +359,12 @@ module.exports =
         # Enter any new links at the parent's previous position.
         link.enter().insert("path", "g")
             .attr("class", "link")
-            .attr("d", (d)->
+            .attr("d", (d)=>
               o = {
                 x: source.x0,
                 y: source.y0
               }
-              diagonal({
+              @diagonal({
                 source: o,
                 target: o
               })
@@ -372,18 +372,18 @@ module.exports =
 
         # Transition links to their new position.
         link.transition()
-            .duration(duration)
-            .attr("d", diagonal)
+            .duration(NODE_TRANSITION_DURATION)
+            .attr("d", @diagonal)
 
         # Transition exiting nodes to the parent's new position.
         link.exit().transition()
-            .duration(duration)
-            .attr("d", (d)->
+            .duration(NODE_TRANSITION_DURATION)
+            .attr("d", (d)=>
               o = {
                 x: source.x,
                 y: source.y
               }
-              diagonal({
+              @diagonal({
                 source: o,
                 target: o
               })
@@ -403,13 +403,13 @@ module.exports =
       @svgGroup = baseSvg.append("g")
 
       # Define the root
-      root = treeData
-      root.x0 = viewerHeight / 4
-      root.y0 = 0
+      @root = treeData
+      @root.x0 = @viewerHeight / 4
+      @root.y0 = 0
 
       # Layout the tree initially and center on the root node.
-      update(root)
-      centerNode(root)
+      update(@root)
+      centerNode(@root)
 
     getTitle: ->
       NAME
