@@ -12,5 +12,50 @@
   // take up 100% of the height unless configured.
   div {
     height: 100%;
+    width: 100%
+  }
+
+  svg  {
+    height: 100%;
+    width: 100%
+  }
+
+  .node {
+    cursor: pointer;
+  }
+
+  .sayid-overlay{
+      background-color:#EEE;
+  }
+
+  .node circle {
+    fill: #fff;
+    stroke: steelblue;
+    stroke-width: 1.5px;
+  }
+
+  .node text {
+    font-size:10px;
+    font-family:sans-serif;
+  }
+
+  .link {
+    fill: none;
+    stroke: #ccc;
+    stroke-width: 1.5px;
+  }
+
+  .templink {
+    fill: none;
+    stroke: red;
+    stroke-width: 3px;
+  }
+
+  .ghostCircle.show{
+      display:block;
+  }
+
+  .ghostCircle, .activeDrag .ghostCircle{
+       display: none;
   }
 }

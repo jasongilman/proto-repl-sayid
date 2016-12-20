@@ -18,7 +18,7 @@
  ;; Mini test
  (do
   (sayid/ws-add-trace-ns! test-ns)
-  (test-ns/chew 20)
+  (test-ns/bar 5)
   (display-last-captured))
  (display-all-captured)
 

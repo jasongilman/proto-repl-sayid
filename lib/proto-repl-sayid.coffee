@@ -1,4 +1,5 @@
 GraphView = require './graph-view'
+TreeView = require './tree-view'
 {CompositeDisposable} = require 'atom'
 url = require 'url'
 
@@ -44,11 +45,15 @@ module.exports = ProtoReplSayid =
     @addCommand("display-last-captured", "proto-repl-sayid.core", "display-last-captured")
     @addCommand("display-all-captured", "proto-repl-sayid.core", "display-all-captured")
 
+    # TODO temporary to make testing tree easier
+    @subscriptions.add atom.commands.add 'atom-workspace', "proto-repl-sayid:show-tree": =>
+      @display({nodes: [], edges: []})
+
 
     atom.workspace.onDidDestroyPaneItem (event)=>
       item = event.item
       pane = event.pane
-      if item instanceof GraphView
+      if item instanceof TreeView
         console.log "Graph view was closed"
         @graphView = null
 
@@ -60,7 +65,7 @@ module.exports = ProtoReplSayid =
         return
 
       return unless protocol == PROTOCOL
-      new GraphView()
+      new TreeView()
 
   deactivate: ->
     @subscriptions.dispose()

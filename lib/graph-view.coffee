@@ -54,6 +54,7 @@ module.exports =
             atom.notifications.addError "Unable to retrieve node data. See console error message", dismissable: true
           else
             inlineData = window.protoRepl.parseEdn(result.value)
+            # TODO finish this
 
 
     display: (data)->

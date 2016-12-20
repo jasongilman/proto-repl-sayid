@@ -8,6 +8,16 @@ See the [Proto REPL Clojure Conj 2016 talk video from 27:13](https://youtu.be/bu
 
 ## TODOs
 
+
+* User Experience
+  * Nodes from left to right
+  * Expandable and collapsible
+  * Fast display of large trees
+  * Too much data is truncated
+  * View popup of information about a node and what was captured. See if qtip will work for this.
+  * Double click display inline data
+* Eventually
+  * Ability to filter out nodes easily or search it
 * Update this README
   * Description
   * gif of it in action.
