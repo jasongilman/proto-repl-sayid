@@ -18,7 +18,7 @@
  ;; Mini test
  (do
   (sayid/ws-add-trace-ns! test-ns)
-  (test-ns/bar 5)
+  (test-ns/chew 20)
   (display-last-captured))
  (display-all-captured)
 
@@ -57,6 +57,7 @@
       (update :children #(when (seq %)
                            (mapv extract-name-children %)))))
 
+;; TODO can potentially get rid of this if not using vis.js
 (defn- extract-edges-and-nodes
   "Extracts edges and nodes for display in Proto REPL Charts graph."
   [node]
@@ -73,14 +74,20 @@
                     (map :nodes child-edges-and-nodes))
      :options {}}))
 
+;; TODO temporarily here to count how many nodes are being displayed
+(defn get-nodes
+  [node]
+  (cons (:name node) (mapcat get-nodes (:children node))))
+
 (defn display-last-captured
   "Displays the last set of captured data."
   []
   (let [data (-> (sayid/ws-deref!)
                  :children
                  last
-                 extract-name-children
-                 extract-edges-and-nodes)]
+                 extract-name-children)]
+                 ; extract-edges-and-nodes)]
+    (println "Displaying" (count (get-nodes data)))
     [:proto-repl-code-execution-extension "proto-repl-sayid" data]))
 
 (defn display-all-captured
@@ -89,7 +96,8 @@
   (let [data (->> (sayid/ws-deref!)
                   :children
                   (map extract-name-children)
-                  (map extract-edges-and-nodes)
+                  ; (map extract-edges-and-nodes)
+                  ;; TODO this won't work with the new tree combo. May want to get rid of this function.
                   (apply merge-with into))]
     [:proto-repl-code-execution-extension "proto-repl-sayid" data]))
 

@@ -122,34 +122,13 @@ module.exports =
     # - After resize get the latest sizes for controlling zooming.
 
 
-    display: (data)->
-      console.log("Received data of #{data.nodes.length} nodes and #{data.edges.length} edges")
+    display: (treeData)->
+      console.log("Received data", treeData)
       # Fail out early if there is no data to display
-      if !data.nodes
-        atom.notifications.addWarning "No data was captured for display", dismissable: true
-        return
-
-      treeData =
-        name: "flare",
-        children: [{
-            name: "analytics",
-            children: [{
-                name: "cluster",
-                children: [{
-                    name: "AgglomerativeCluster",
-                    size: 3938
-                }, {
-                    name: "CommunityStructure",
-                    size: 3812
-                }, {
-                    name: "HierarchicalCluster",
-                    size: 6714
-                }, {
-                    name: "MergeEdge",
-                    size: 743
-                }]
-            }]}]
-
+      # TODO how do we know if it's empty?
+      # if !data.nodes
+      #   atom.notifications.addWarning "No data was captured for display", dismissable: true
+      #   return
 
       @graphDiv = document.createElement("div")
       @html $ @graphDiv
@@ -177,19 +156,6 @@ module.exports =
         maxLabelLength = Math.max(d.name.length, maxLabelLength)
       , (d)-> if d.children && d.children.length > 0 then d.children else null)
 
-
-      # sort the tree according to the node names
-
-      sortTree = ()->
-        tree.sort (a, b) ->
-          if b.name.toLowerCase() < a.name.toLowerCase()
-            1
-          else
-            -1
-
-      # Sort the tree initially incase the JSON isn't in a sorted order.
-      sortTree()
-
       # Define the zoom function for the zoomable tree
       zoom = ()=>
         @svgGroup.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")")
@@ -204,7 +170,6 @@ module.exports =
           .call(zoomListener)
 
       # Helper functions for collapsing and expanding nodes.
-
       collapse = (d)->
         if d.children
           d._children = d.children
@@ -216,40 +181,6 @@ module.exports =
           d.children = d._children
           d.children.forEach(expand)
           d._children = null
-
-
-      # # Function to update the temporary connector indicating dragging affiliation
-      # updateTempConnector = ()=>
-      #   data = []
-      #   if draggingNode != null && selectedNode != null
-      #     # have to flip the source coordinates since we did this for the existing connectors on the original tree
-      #     data = [{
-      #         source: {
-      #             x: selectedNode.y0,
-      #             y: selectedNode.x0
-      #         },
-      #         target: {
-      #             x: draggingNode.y0,
-      #             y: draggingNode.x0
-      #         }
-      #     }]
-      #   link = @svgGroup.selectAll(".templink").data(data)
-      #
-      #   link.enter().append("path")
-      #       .attr("class", "templink")
-      #       .attr("d", d3.svg.diagonal())
-      #       .attr('pointer-events', 'none')
-      #
-      #   link.attr("d", d3.svg.diagonal())
-      #
-      #   link.exit().remove()
-      #
-      # overCircle = (d)->
-      #     selectedNode = d
-      #     updateTempConnector()
-      # outCircle = (d)->
-      #     selectedNode = null
-      #     updateTempConnector()
 
       # Function to center node when clicked/dropped so node doesn't get lost when collapsing/moving with large amount of children.
       centerNode = (source)->
@@ -275,7 +206,6 @@ module.exports =
         d
 
       # Toggle children on click.
-
       click = (d)=>
         if (d3.event.defaultPrevented) then return # click suppressed
         d = toggleChildren(d)
@@ -302,17 +232,12 @@ module.exports =
         links = tree.links(nodes)
 
         # Set widths between levels based on maxLabelLength.
-        nodes.forEach((d)->
-          d.y = (d.depth * (maxLabelLength * 10)) #maxLabelLength * 10px
-          # alternatively to keep a fixed scale one can set a fixed depth per level
-          # Normalize for fixed-depth by commenting out below line
-          # d.y = (d.depth * 500) #500px per level.
-          )
+        nodes.forEach((d)->d.y = (d.depth * (maxLabelLength * 10)))
 
         # Update the nodes…
         node = @svgGroup.selectAll("g.node").data(nodes, (d)-> d.id || (d.id = ++nextNodeId))
 
-        #Enter any new nodes at the parent's previous position.
+        # Enter any new nodes at the parent's previous position.
         nodeEnter = node.enter().append("g")
             .attr("class", "node")
             .attr("transform",(d)->
