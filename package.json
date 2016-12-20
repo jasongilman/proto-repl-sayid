@@ -21,8 +21,6 @@
   "dependencies": {
     "atom-space-pen-views": "2.2.0",
     "resizable": "1.1.1",
-    "vis": "4.15.0",
-    "qtip2": "3.0.3",
     "d3": "3.5.17"
   }
 }

@@ -1,4 +1,3 @@
-GraphView = require './graph-view'
 TreeView = require './tree-view'
 {CompositeDisposable} = require 'atom'
 url = require 'url'
@@ -8,7 +7,7 @@ PROTOCOL = "proto-repl-sayid:"
 module.exports = ProtoReplSayid =
   subscriptions: null
 
-  graphView: null
+  treeView: null
 
   # Boolean indicates if this extension has been registered with Proto REPL
   registeredExtension: false
@@ -21,12 +20,12 @@ module.exports = ProtoReplSayid =
         @registeredExtension = true
 
   display: (data)->
-    if @graphView
-      @graphView.display(data)
+    if @treeView
+      @treeView.display(data)
     else
       atom.workspace.open("#{PROTOCOL}//", split: 'right', searchAllPanes: true).done (view)=>
-        @graphView = view
-        @graphView.display(data)
+        @treeView = view
+        @treeView.display(data)
 
   # Helper for defining a command that calls a function on a namespace.
   addCommand: (name, ns, fn)->
@@ -51,8 +50,8 @@ module.exports = ProtoReplSayid =
       item = event.item
       pane = event.pane
       if item instanceof TreeView
-        console.log "Graph view was closed"
-        @graphView = null
+        console.log "Tree view was closed"
+        @treeView = null
 
     atom.workspace.addOpener (uriToOpen) ->
       try

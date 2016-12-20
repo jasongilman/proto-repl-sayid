@@ -31,11 +31,6 @@
 {$, $$$, ScrollView}  = require 'atom-space-pen-views'
 d3 = require 'd3'
 
-# TODO how do we make jQuery available for qtip without doing this
-jQuery = require('jquery')
-window.jQuery = jQuery
-qtip = require 'qtip2'
-
 # A recursive helper function for performing some setup by walking through all nodes
 visit = (parent, visitFn, childrenFn)->
   if !parent then return
