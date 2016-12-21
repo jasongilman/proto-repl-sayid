@@ -56,11 +56,6 @@
       (update :children #(when (seq %)
                            (mapv extract-name-children %)))))
 
-;; TODO temporarily here to count how many nodes are being displayed
-(defn get-nodes
-  [node]
-  (cons (:name node) (mapcat get-nodes (:children node))))
-
 (defn display-last-captured
   "Displays the last set of captured data."
   []
@@ -68,20 +63,19 @@
                  :children
                  last
                  extract-name-children)]
-                 ; extract-edges-and-nodes)]
-    (println "Displaying" (count (get-nodes data)))
     [:proto-repl-code-execution-extension "proto-repl-sayid" data]))
 
-(defn display-all-captured
-  "Displays all of the captured data."
-  []
-  (let [data (->> (sayid/ws-deref!)
-                  :children
-                  (map extract-name-children)
-                  ; (map extract-edges-and-nodes)
-                  ;; TODO this won't work with the new tree combo. May want to get rid of this function.
-                  (apply merge-with into))]
-    [:proto-repl-code-execution-extension "proto-repl-sayid" data]))
+;; TODO determine if keeping this.
+; (defn display-all-captured
+;   "Displays all of the captured data."
+;   []
+;   (let [data (->> (sayid/ws-deref!)
+;                   :children
+;                   (map extract-name-children)
+;                   ; (map extract-edges-and-nodes)
+;                   ;; TODO this won't work with the new tree combo. May want to get rid of this function.
+;                   (apply merge-with into))]
+;     [:proto-repl-code-execution-extension "proto-repl-sayid" data]))
 
 (defn- find-node-by-id
   [id]
@@ -90,7 +84,7 @@
       first))
 
 (def MAX_INLINE_WIDTH
-  "TODO"
+  "The Maximum width that something can be displayed inline"
   60)
 
 (defn retrieve-node-inline-data

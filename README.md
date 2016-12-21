@@ -14,9 +14,14 @@ See the [Proto REPL Clojure Conj 2016 talk video from 27:13](https://youtu.be/bu
   * Expandable and collapsible - X
   * Fast display of large trees - X
   * Too much data should be truncated
+    * Tooltips - X
+    * Large trees
+      * Should have some kind of warning or indication that data is truncated.
+    * Inline display
   * View popup of information about a node and what was captured. -X
     * Test this with more thorough example
-  * Double click display inline data
+  * Double click display inline data - X
+  * Allow Defing data from inline display
   * Ability to expand all nodes or collapse all nodes.
 * Eventually
   * Ability to filter out nodes easily or search it
