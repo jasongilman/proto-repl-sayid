@@ -53,8 +53,39 @@ NAME = "Sayid Call Graph"
 
 module.exports =
   class TreeView extends ScrollView
-    network: null
+
+    # Main div the holds the call graph
     graphDiv: null
+
+    # The longest label for a node that was found.
+    maxLabelLength: null
+
+    # The root of the data tree
+    root: null
+
+    # The next id to assign to a node.
+    nextNodeId: 0
+
+    # The current width of the view
+    viewerWidth: null
+
+    #The current height of the view
+    viewerHeight: null
+
+    # An instance of a D3 tree layout
+    tree: null
+
+    # A div used to show the tool tip
+    tooltipDiv: null
+
+    # a d3 diagonal projection for use by the node paths
+    diagonalProjection: null
+
+    # The root svg group that holds everything. Used for zooming
+    svgGroup: null
+
+    # d3 zooming behavior
+    zoomListener: null
 
     atom.deserializers.add(this)
 
@@ -85,10 +116,8 @@ module.exports =
             # TODO finish this
 
 
-
     # TODO
     # - After resize get the latest sizes for controlling zooming.
-
 
     display: (treeData)->
       console.log("Received data", treeData)
@@ -98,7 +127,6 @@ module.exports =
       #   atom.notifications.addWarning "No data was captured for display", dismissable: true
       #   return
 
-      # TODO identify and document all class variables
       @graphDiv = document.createElement("div")
       d3.select(@graphDiv).attr("class", "sayid-holder")
       @html $ @graphDiv
@@ -119,8 +147,7 @@ module.exports =
           .style("opacity", 0);
 
       # define a d3 diagonal projection for use by the node paths later on.
-      # TODO rename to something like d3Diagnol
-      @diagonal = d3.svg.diagonal().projection((d)-> [d.y, d.x])
+      @diagonalProjection = d3.svg.diagonal().projection((d)-> [d.y, d.x])
 
       # Call visit function to establish maxLabelLength
       visit(treeData, (d)=>
@@ -166,7 +193,6 @@ module.exports =
 
 
     # Toggle children on click.
-    # TODO rename to something like handleNodeClick
     handleNodeClick: (d)->
       if d3.event.defaultPrevented then return # click suppressed
 
@@ -182,7 +208,9 @@ module.exports =
       @updateNode(d)
       @centerNode(d)
 
-    # TODO doc string and better name
+    # Main handler of D3-afication of nodes. Takes a data node and adds it to
+    # the displayed set of data. Can be used to update what's currently displayed
+    # if the current state has changed to collapse or expand a node.
     updateNode: (source)->
       # Compute the new height, function counts total children of root node and sets tree height accordingly.
       # This prevents the layout looking squashed when new nodes are made visible or looking sparse when nodes are removed
@@ -334,7 +362,7 @@ module.exports =
               x: source.x0,
               y: source.y0
             }
-            @diagonal({
+            @diagonalProjection({
               source: o,
               target: o
             })
@@ -343,7 +371,7 @@ module.exports =
       # Transition links to their new position.
       link.transition()
           .duration(NODE_TRANSITION_DURATION)
-          .attr("d", @diagonal)
+          .attr("d", @diagonalProjection)
 
       # Transition exiting nodes to the parent's new position.
       link.exit().transition()
@@ -353,7 +381,7 @@ module.exports =
               x: source.x,
               y: source.y
             }
-            @diagonal({
+            @diagonalProjection({
               source: o,
               target: o
             })
