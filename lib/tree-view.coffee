@@ -27,7 +27,7 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
+{Range, Point} = require 'atom'
 {$, $$$, ScrollView}  = require 'atom-space-pen-views'
 d3 = require 'd3'
 
@@ -46,6 +46,19 @@ PAN_BOUNDARY = 20
 
 NODE_TRANSITION_DURATION = 750
 
+# Truncates a string to the specified length if needed.
+truncateToLength = (s, length)->
+  if s.length > length
+    s.substring(0, length-1) + "…"
+  else
+    s
+
+# The maximum width of inline data on one row
+MAX_INLINE_WIDTH = 60
+# The string separating arguments from the return value for inline display
+ARG_RETURN_SEP = " => "
+# The maximum amount of space the arguments can take with summarized with return value
+ARG_SUMMARY_WITH_RETURN_MAX_LENGTH = (MAX_INLINE_WIDTH - ARG_RETURN_SEP.length) * 0.75
 
 
 PROTOCOL = "proto-repl-sayid:"
@@ -105,18 +118,60 @@ module.exports =
     serialize: ->
       deserializer : 'TreeView'
 
+    # TODO doc string
+    # Expected keys are file, line, args, return
+    # args is a map of argument name to edn value.
+    # argsSummary is a string summarization of the arguments
+    # returned is an edn value that was returned
+    inlineDataToTree: ({args, argsSummary, returned})->
+      topArgsSummary = truncateToLength(argsSummary, ARG_SUMMARY_WITH_RETURN_MAX_LENGTH)
+      topSummary = truncateToLength(topArgsSummary + ARG_RETURN_SEP + returned, MAX_INLINE_WIDTH)
+      # Create inline trees for each of the arguments.
+      argsInlineTrees = for argName, argValue of args
+        # Use Proto REPLs built in capability for this.
+        [summary, rest...] = window.protoRepl.ednToDisplayTree(argValue)
+        # Generate a new summary with the arg name.
+        summary = truncateToLength(argName + ": " + summary, MAX_INLINE_WIDTH)
+        [summary].concat(rest)
+      [returnedSummary, rest...] = window.protoRepl.ednToDisplayTree(returned)
+      returnedSummary = truncateToLength("Return: " + returnedSummary, MAX_INLINE_WIDTH)
+      returnedInlineTree = [returnedSummary].concat(rest)
+
+      # TODO add in arg def button
+      [topSummary, {},
+        [truncateToLength("Args: " + argsSummary, MAX_INLINE_WIDTH), {}].concat(argsInlineTrees),
+        returnedInlineTree]
+
+    # TODO doc string
+    fetchInlineData: (id)->
+      new Promise (resolve, reject)->
+        window.protoRepl.executeCode "(proto-repl-sayid.core/retrieve-node-inline-data #{id})",
+          displayInRepl: false,
+          resultHandler: (result)->
+            console.log("Retrieved inline data", result)
+            if result.error
+              reject(result.error)
+            else
+              resolve(window.protoRepl.parseEdn(result.value))
+
+    # TODO doc string
     displayNodeInlineData: (id)->
       console.log("Node clicked", id)
-      window.protoRepl.executeCode "(proto-repl-sayid.core/retrieve-node-inline-data #{id})",
-        displayInRepl: false,
-        resultHandler: (result)->
-          console.log("Retrieved inline data", result)
-          if result.error
-            console.error(result.error)
-            atom.notifications.addError "Unable to retrieve node data. See console error message", dismissable: true
-          else
-            inlineData = window.protoRepl.parseEdn(result.value)
-            # TODO finish this
+
+      @fetchInlineData(id).then((data)=>
+        inlineTree = @inlineDataToTree(data)
+        line = data.line - 1
+        range = new Range(new Point(line), new Point(line,Infinity))
+        console.log "Range", range
+
+        textEditorPromise = atom.workspace.open(data.file, {initialLine: line, searchAllPanes: true})
+        textEditorPromise.then (editor)->
+          window.protoRepl.repl.displayInline(editor, range, inlineTree)
+      ).catch((error)->
+        console.error(error)
+        atom.notifications.addError "Unable to retrieve node data. See console error message", dismissable: true
+      )
+
 
 
     # TODO
@@ -220,8 +275,8 @@ module.exports =
             displayInRepl: false
             resultHandler: (result, options)=>
               if result.error
-                # TODO popup error
                 console.error result.error
+                atom.notifications.addError "Unable to retrieve tooltip display info. See console error message", dismissable: true
               else
                 text = result.value
                 text = text.substring(1, text.length-1)

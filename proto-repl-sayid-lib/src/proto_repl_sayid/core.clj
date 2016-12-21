@@ -56,23 +56,6 @@
       (update :children #(when (seq %)
                            (mapv extract-name-children %)))))
 
-;; TODO can potentially get rid of this if not using vis.js
-; (defn- extract-edges-and-nodes
-;   "Extracts edges and nodes for display in Proto REPL Charts graph."
-;   [node]
-;   (let [{:keys [id name children]} node
-;         child-edges-and-nodes (mapv extract-edges-and-nodes children)
-;         current-node {:id id
-;                       :label (str/replace name "/" "\n")
-;                       :group (str/replace name #"/.*" "")}]
-;     {:edges (vec (concat (mapv #(hash-map :from id :to (:id %))
-;                                children)
-;                          (mapcat :edges child-edges-and-nodes)))
-;      :nodes (reduce #(into %1 %2)
-;                     #{current-node}
-;                     (map :nodes child-edges-and-nodes))
-;      :options {}}))
-
 ;; TODO temporarily here to count how many nodes are being displayed
 (defn get-nodes
   [node]
@@ -106,20 +89,37 @@
       :children
       first))
 
-;; TODO this should return data in format
-;; ["text for display", {button options}, [childtree1, childtree2, ...]]
+(def MAX_INLINE_WIDTH
+  "TODO"
+  60)
+
 (defn retrieve-node-inline-data
-  "Retrieves information about a sayid node for display inline"
+  "Retrieves information about a sayid node for display inline."
   [id]
   (when-let [snode (find-node-by-id id)]
     (let [{:keys [return arg-map]} snode
           {:keys [line file]} (or (:meta snode) (:src-pos snode))
-          file (.getPath (.getResource (clojure.lang.RT/baseLoader) file))]
+          ;; TODO fix the saved values bug when file is not included here
+          _ (proto-repl.saved-values/save 1 file)
+          file (if-let [r (.getResource (clojure.lang.RT/baseLoader) file)]
+                 (.getPath r)
+                 file)
+          args-summary (pr-str arg-map)
+          args-summary (subs args-summary 0 (min (count args-summary) (inc MAX_INLINE_WIDTH)))]
       {:file file
        :line line
-       :args arg-map
-       :return return})))
+       :args (into {} (mapv (fn [[k v]]
+                              [k (pr-str v)])
+                            arg-map))
+       :argsSummary args-summary
+       :returned (pr-str return)})))
 
+(comment
+ (find-node-by-id 12560)
+ (retrieve-node-inline-data 12560))
+
+;; TODO test this with very large maps.
+;; TODO Does it need to use pretty printing?
 (defn node-tooltip-html
   "Returns an HTML string of information to display for the given node in a tooltip."
   [id]

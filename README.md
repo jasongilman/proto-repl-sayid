@@ -10,14 +10,17 @@ See the [Proto REPL Clojure Conj 2016 talk video from 27:13](https://youtu.be/bu
 
 
 * User Experience
-  * Nodes from left to right
-  * Expandable and collapsible
-  * Fast display of large trees
-  * Too much data is truncated
-  * View popup of information about a node and what was captured. See if qtip will work for this.
+  * Nodes from left to right - X
+  * Expandable and collapsible - X
+  * Fast display of large trees - X
+  * Too much data should be truncated
+  * View popup of information about a node and what was captured. -X
+    * Test this with more thorough example
   * Double click display inline data
+  * Ability to expand all nodes or collapse all nodes.
 * Eventually
   * Ability to filter out nodes easily or search it
+* Search for all TODOs
 * Update this README
   * Description
   * gif of it in action.
