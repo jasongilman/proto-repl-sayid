@@ -100,7 +100,7 @@
     (let [{:keys [return arg-map]} snode
           {:keys [line file]} (or (:meta snode) (:src-pos snode))
           ;; TODO fix the saved values bug when file is not included here
-          _ (proto-repl.saved-values/save 1 file)
+          ; _ (proto-repl.saved-values/save 1 file)
           file (if-let [r (.getResource (clojure.lang.RT/baseLoader) file)]
                  (.getPath r)
                  file)
@@ -116,15 +116,24 @@
 
 (comment
  (find-node-by-id 12560)
- (retrieve-node-inline-data 12560))
+ (retrieve-node-inline-data 12560)
+ (node-tooltip-html 12560))
 
-;; TODO test this with very large maps.
-;; TODO Does it need to use pretty printing?
+(defn- arg->html
+  "Formats an argument for display in a tooltip."
+  [[arg-name arg-value]]
+  (format "<li><b>%s</b> - <code>%s</code></li>" arg-name (pr-str arg-value)))
+
 (defn node-tooltip-html
   "Returns an HTML string of information to display for the given node in a tooltip."
   [id]
   (when-let [snode (find-node-by-id id)]
-    (let [{:keys [return arg-map]} snode]
-      (format (str "<p><b>Arguments</b><p><code>%s</code></p>"
-                   "<b>Returned:</b><p><code>%s</code></p><p>")
-              (pr-str arg-map) (pr-str return)))))
+    ;; Limit the depth of things that are printed for tooltips
+    (with-bindings
+     {#'*print-length* 4
+      #'*print-level* 4}
+     (let [{:keys [return arg-map]} snode]
+       (format (str "<b>Arguments</b><ul>%s</ul>"
+                    "<b>Returned:</b><p><code>%s</code></p>")
+               (str/join (map arg->html arg-map))
+               (pr-str return))))))
