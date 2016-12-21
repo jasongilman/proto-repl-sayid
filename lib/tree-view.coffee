@@ -78,6 +78,9 @@ module.exports =
     # A div used to show the tool tip
     tooltipDiv: null
 
+    # A timeout id used to set a timeout for delaying execution of code to get data for displaying the tooltip.
+    toolTipDisplayTimeout: null
+
     # a d3 diagonal projection for use by the node paths
     diagonalProjection: null
 
@@ -156,7 +159,7 @@ module.exports =
       , (d)-> if d.children && d.children.length > 0 then d.children else null)
 
       # Define the zoom function for the zoomable tree
-      zoom = ()=>
+      zoom = (d)=>
         @svgGroup.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")")
 
       # define the zoomListener which calls the zoom function on the "zoom" event constrained within the scaleExtents
@@ -208,6 +211,43 @@ module.exports =
       @updateNode(d)
       @centerNode(d)
 
+    # Handles a node mouse over event. Takes the node that was moused over.
+    handleMouseOver: (d)->
+      x = d3.event.layerX
+      y = d3.event.layerY
+      @toolTipDisplayTimeout = setTimeout(=>
+          window.protoRepl.executeCode("(proto-repl-sayid.core/node-tooltip-html #{d.id})",
+            displayInRepl: false
+            resultHandler: (result, options)=>
+              if result.error
+                # TODO popup error
+                console.error result.error
+              else
+                text = result.value
+                text = text.substring(1, text.length-1)
+                @displayToolTip(text, x, y)
+          )
+        , 200)
+
+    # Displays a tooltip with the given html at position x,y
+    displayToolTip: (html, x, y)->
+      @tooltipDiv.transition()
+          .duration(500)
+          .style("opacity", 0.9)
+      @tooltipDiv.html(html)
+          .style("left", x + "px")
+          .style("top", (y + 28) + "px")
+
+    # Hides a currently displayed tooltip
+    hideToolTip: ()->
+      if @toolTipDisplayTimeout
+        clearTimeout(@toolTipDisplayTimeout)
+        @toolTipDisplayTimeout = null
+
+      @tooltipDiv.transition()
+          .duration(500)
+          .style("opacity", 0)
+
     # Main handler of D3-afication of nodes. Takes a data node and adds it to
     # the displayed set of data. Can be used to update what's currently displayed
     # if the current state has changed to collapse or expand a node.
@@ -242,7 +282,6 @@ module.exports =
           .attr("transform",(d)->
               "translate(" + source.y0 + "," + source.x0 + ")"
           )
-          .on('click', (d)=>@handleNodeClick(d))
 
       nodeEnter.append("circle")
           .attr('class', 'nodeCircle')
@@ -250,6 +289,7 @@ module.exports =
           .style("fill", (d)->
               if d._children then "lightsteelblue" else "#fff"
           )
+          .on('click', (d)=>@handleNodeClick(d))
 
       nodeEnter.append("text")
           .attr("x", (d)->
@@ -262,34 +302,11 @@ module.exports =
           )
           .text((d)->d.name)
           .style("fill-opacity", 0)
-          .on("mouseover", (d)=>
-            # TODO we should do this on a timer that will display a tool tip if they leave the mouse in there
-            # for long enough.
-            # window.protoRepl.executeCode("(proto-repl-sayid.core/node-tooltip-data #{d.id})",
-            #   displayInRepl: false # autoEval only displays inline
-            #   resultHandler: (result, options)=>
-            #     if result.error
-            #       # TODO popup error
-            #       console.error result.error
-            #     else
-            #       tooltipDiv.transition()
-            #           .duration(200)
-            #           .style("opacity", .9)
-            #       tooltipDiv.html("<bold>#{d.name}</bold>")
-            #           .style("left", (d3.event.layerX) + "px")
-            #           .style("top", (d3.event.layerY + 28) + "px")
-            # )
-            @tooltipDiv.transition()
-                .duration(200)
-                .style("opacity", .9)
-            @tooltipDiv.html("<bold>#{d.name}</bold>")
-                .style("left", (d3.event.layerX) + "px")
-                .style("top", (d3.event.layerY + 28) + "px")
-          )
-          .on("mouseout", (d)=>
-            @tooltipDiv.transition()
-                .duration(500)
-                .style("opacity", 0)
+          .on("mouseover", (d)=>@handleMouseOver(d))
+          .on("mouseout", (d)=>@hideToolTip(d))
+          .on("dblclick", (d)=>
+            d3.event.stopPropagation()
+            @displayNodeInlineData(d.id)
           )
 
       # phantom node to give us mouseover in a radius around it
@@ -300,13 +317,6 @@ module.exports =
           .style("fill", "red")
           .attr('pointer-events', 'mouseover')
 
-          # TODO can probably get rid of this
-          # .on("mouseover", (node)->
-          #     overCircle(node)
-          # )
-          # .on("mouseout", (node)->
-          #     outCircle(node)
-          # )
 
       # Update the text to reflect whether node has children or not.
       node.select('text')

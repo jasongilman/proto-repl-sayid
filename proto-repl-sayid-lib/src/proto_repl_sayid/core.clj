@@ -120,10 +120,11 @@
        :args arg-map
        :return return})))
 
-(defn node-tooltip-data
+(defn node-tooltip-html
+  "Returns an HTML string of information to display for the given node in a tooltip."
   [id]
   (when-let [snode (find-node-by-id id)]
     (let [{:keys [return arg-map]} snode]
-      (format "<p><h1>Arguments</h1><p><code></code></p>
-                  <h1>Returned:</h1><code>%s</code><p>")
-      (pr-str arg-map) (pr-str return))))
+      (format (str "<p><b>Arguments</b><p><code>%s</code></p>"
+                   "<b>Returned:</b><p><code>%s</code></p><p>")
+              (pr-str arg-map) (pr-str return)))))
