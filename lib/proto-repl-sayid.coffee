@@ -43,9 +43,6 @@ module.exports = ProtoReplSayid =
     @addCommand("clear-captured", "com.billpiel.sayid.core", "ws-clear-log!")
     @addCommand("display-last-captured", "proto-repl-sayid.core", "display-last-captured")
 
-    # TODO can we actually support this and do we want to do that?
-    # @addCommand("display-all-captured", "proto-repl-sayid.core", "display-all-captured")
-
     atom.workspace.onDidDestroyPaneItem (event)=>
       item = event.item
       pane = event.pane

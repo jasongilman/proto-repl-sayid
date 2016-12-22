@@ -59,10 +59,10 @@
 (defn display-last-captured
   "Displays the last set of captured data."
   []
-  (let [data (-> (sayid/ws-deref!)
-                 :children
-                 last
-                 extract-name-children)]
+  (let [data (some-> (sayid/ws-deref!)
+                     :children
+                     last
+                     extract-name-children)]
     [:proto-repl-code-execution-extension "proto-repl-sayid" data]))
 
 ;; TODO determine if keeping this.

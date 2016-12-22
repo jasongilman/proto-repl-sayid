@@ -124,8 +124,8 @@ module.exports =
         displayInRepl: false,
         resultHandler: (result)->
           if result.error
-            atom.notifications.addError "Unable to define args for node. See Atom console for full error.", dismissable: true
             console.log result.error
+            atom.notifications.addError "Unable to define args for node. See Atom console for full error.", dismissable: true
 
 
     # Creates an inline tree to display arguments and return values that were captured from the stack.
@@ -164,7 +164,6 @@ module.exports =
         window.protoRepl.executeCode "(proto-repl-sayid.core/retrieve-node-inline-data #{id})",
           displayInRepl: false,
           resultHandler: (result)->
-            console.log("Retrieved inline data", result)
             if result.error
               reject(result.error)
             else
@@ -173,8 +172,6 @@ module.exports =
     # Retrieves data from sayid for the node with the given id and displays an
     # inline tree in the file where the function is located.
     displayNodeInlineData: (id)->
-      console.log("Node clicked", id)
-
       @fetchInlineData(id).then((data)=>
         inlineTree = @inlineDataToTree(id, data)
         line = data.line - 1
@@ -210,15 +207,6 @@ module.exports =
 
     # Displays the sayid data in a D3 tree.
     display: (treeData)->
-      console.log("Received data", treeData)
-      # Fail out early if there is no data to display
-      # TODO how do we know if it's empty?
-      # if !data.nodes
-      #   atom.notifications.addWarning "No data was captured for display", dismissable: true
-      #   return
-
-      window.treeView = this
-
       holderDiv = document.createElement("div")
       @html $ holderDiv
 
@@ -257,7 +245,6 @@ module.exports =
                     .attr("class", "sayid-holder")
 
       @maxLabelLength = 0
-
       @root = null
       @nextNodeId = 0
 
@@ -273,6 +260,11 @@ module.exports =
 
       # define a d3 diagonal projection for use by the node paths later on.
       @diagonalProjection = d3.svg.diagonal().projection((d)-> [d.y, d.x])
+
+      # Fail out early but after GUI is setup if there is no data to display
+      if !treeData
+        atom.notifications.addWarning "No data was captured for display", dismissable: true
+        return
 
       # Call visit function to establish maxLabelLength
       visit(treeData, (d)=>
