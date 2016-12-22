@@ -118,12 +118,22 @@ module.exports =
     serialize: ->
       deserializer : 'TreeView'
 
-    # TODO doc string
+    # Defines the arguments that were captured by sayid.
+    defArgsForNode: (id)->
+      window.protoRepl.executeCode "(proto-repl-sayid.core/def-args-for-node #{id})",
+        displayInRepl: false,
+        resultHandler: (result)->
+          if result.error
+            atom.notifications.addError "Unable to define args for node. See Atom console for full error.", dismissable: true
+            console.log result.error
+
+
+    # Creates an inline tree to display arguments and return values that were captured from the stack.
     # Expected keys are file, line, args, return
     # args is a map of argument name to edn value.
     # argsSummary is a string summarization of the arguments
     # returned is an edn value that was returned
-    inlineDataToTree: ({args, argsSummary, returned})->
+    inlineDataToTree: (id, {args, argsSummary, returned})->
       topArgsSummary = truncateToLength(argsSummary, ARG_SUMMARY_WITH_RETURN_MAX_LENGTH)
       topSummary = truncateToLength(topArgsSummary + ARG_RETURN_SEP + returned, MAX_INLINE_WIDTH)
       # Create inline trees for each of the arguments.
@@ -137,12 +147,18 @@ module.exports =
       returnedSummary = truncateToLength("Return: " + returnedSummary, MAX_INLINE_WIDTH)
       returnedInlineTree = [returnedSummary].concat(rest)
 
-      # TODO add in arg def button
+      # Defines button options to add a button that will define the arguments for a function.
+      defArgsButton =
+        button_text: "def",
+        button_class: "def-saved-var"
+        button_fn: ()=> @defArgsForNode(id)
+
       [topSummary, {},
-        [truncateToLength("Args: " + argsSummary, MAX_INLINE_WIDTH), {}].concat(argsInlineTrees),
+        [truncateToLength("Args: " + argsSummary, MAX_INLINE_WIDTH), defArgsButton].concat(argsInlineTrees),
         returnedInlineTree]
 
-    # TODO doc string
+    # Returns a promise that gets the data captured by sayid for a given node
+    # so it can be displayed as an inline tree.
     fetchInlineData: (id)->
       new Promise (resolve, reject)->
         window.protoRepl.executeCode "(proto-repl-sayid.core/retrieve-node-inline-data #{id})",
@@ -154,29 +170,26 @@ module.exports =
             else
               resolve(window.protoRepl.parseEdn(result.value))
 
-    # TODO doc string
+    # Retrieves data from sayid for the node with the given id and displays an
+    # inline tree in the file where the function is located.
     displayNodeInlineData: (id)->
       console.log("Node clicked", id)
 
       @fetchInlineData(id).then((data)=>
-        inlineTree = @inlineDataToTree(data)
+        inlineTree = @inlineDataToTree(id, data)
         line = data.line - 1
         range = new Range(new Point(line), new Point(line,Infinity))
-        console.log "Range", range
-
         textEditorPromise = atom.workspace.open(data.file, {initialLine: line, searchAllPanes: true})
         textEditorPromise.then (editor)->
           window.protoRepl.repl.displayInline(editor, range, inlineTree)
       ).catch((error)->
         console.error(error)
-        atom.notifications.addError "Unable to retrieve node data. See console error message", dismissable: true
+        atom.notifications.addError "Unable to retrieve node data. See Atom console for full error.", dismissable: true
       )
 
+    # TODO  After resize get the latest sizes for controlling zooming.
 
-
-    # TODO
-    # - After resize get the latest sizes for controlling zooming.
-
+    # Displays the sayid data in a D3 tree.
     display: (treeData)->
       console.log("Received data", treeData)
       # Fail out early if there is no data to display

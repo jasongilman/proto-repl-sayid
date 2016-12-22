@@ -18,7 +18,7 @@
  ;; Mini test
  (do
   (sayid/ws-add-trace-ns! test-ns)
-  (test-ns/chew 20)
+  (test-ns/chew 2)
   (display-last-captured))
 
  (-> (->> (sayid/ws-deref!) :children first :children first)
@@ -109,9 +109,9 @@
        :returned (pr-str return)})))
 
 (comment
- (find-node-by-id 12560)
- (retrieve-node-inline-data 12560)
- (node-tooltip-html 12560))
+ (find-node-by-id 12038)
+ (retrieve-node-inline-data 12038)
+ (node-tooltip-html 10983))
 
 (defn- arg->html
   "Formats an argument for display in a tooltip."
@@ -131,3 +131,13 @@
                     "<b>Returned:</b><p><code>%s</code></p>")
                (str/join (map arg->html arg-map))
                (pr-str return))))))
+
+(defn def-args-for-node
+  "Defines arguments captured in a sayid node as temporary vars of the namespace."
+  [id]
+  (when-let [snode (find-node-by-id id)]
+    (let [the-ns (get-in snode [:meta :ns])]
+      (println (format "Defining in ns [%s] the arguments %s"
+                       the-ns (vec (keys (:arg-map snode)))))
+      (doseq [[arg-name arg-value] (:arg-map snode)]
+        (intern the-ns arg-name arg-value)))))
