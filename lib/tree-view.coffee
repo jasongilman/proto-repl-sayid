@@ -189,6 +189,20 @@ module.exports =
 
     # TODO  After resize get the latest sizes for controlling zooming.
 
+    # Collapses all the nodes that are the children of the given node.
+    collapse: (d)->
+      if d.children
+        d._children = d.children
+        d._children.forEach (c)=>@collapse(c)
+        d.children = null
+
+    # Expands all the nodes that are the children of the given node.
+    expand: (d)->
+      if (d._children)
+        d.children = d._children
+        d.children.forEach (c)=>@expand(c)
+        d._children = null
+
     # Displays the sayid data in a D3 tree.
     display: (treeData)->
       console.log("Received data", treeData)
@@ -198,9 +212,42 @@ module.exports =
       #   atom.notifications.addWarning "No data was captured for display", dismissable: true
       #   return
 
-      @graphDiv = document.createElement("div")
-      d3.select(@graphDiv).attr("class", "sayid-holder")
-      @html $ @graphDiv
+      window.treeView = this
+
+      holderDiv = document.createElement("div")
+      @html $ holderDiv
+
+      d3HolderDiv = d3.select(holderDiv)
+        .attr("class", "sayid-holder")
+
+      # Add toolbar
+      toolbar = d3HolderDiv.append("div")
+          .attr("class", "sayid-toolbar")
+        .append("div")
+          .attr("class", "bar")
+        .append("span")
+          .attr("class", "inline-block")
+
+      # Expand all button
+      toolbar.append("button")
+          .attr("class", "btn")
+          .text("Expand All")
+          .on("click", ()=>
+            @expand(@root)
+            @updateNode(@root)
+          )
+
+      # Collapse all button
+      toolbar.append("button")
+          .attr("class", "btn")
+          .text("Collapse All")
+          .on("click", ()=>
+            @collapse(@root)
+            @updateNode(@root)
+          )
+
+      @graphDiv = d3HolderDiv.append("div")
+                    .attr("class", "sayid-holder")
 
       @maxLabelLength = 0
 
@@ -208,12 +255,12 @@ module.exports =
       @nextNodeId = 0
 
       # size of the diagram
-      @viewerWidth = $(@graphDiv).width()
-      @viewerHeight = $(@graphDiv).height()
+      @viewerWidth = $(holderDiv).width()
+      @viewerHeight = $(holderDiv).height()
       @tree = d3.layout.tree().size([@viewerHeight, @viewerWidth])
 
       # Define the div for the tooltip
-      @tooltipDiv = d3.select(@graphDiv).append("div")
+      @tooltipDiv = @graphDiv.append("div")
           .attr("class", "sayid-tooltip")
           .style("opacity", 0);
 
@@ -233,7 +280,7 @@ module.exports =
       # define the zoomListener which calls the zoom function on the "zoom" event constrained within the scaleExtents
       @zoomListener = d3.behavior.zoom().scaleExtent([0.1, 3]).on("zoom", zoom)
 
-      baseSvg = d3.select(@graphDiv).append("svg")
+      baseSvg = @graphDiv.append("svg")
           .attr("class", "sayid-overlay")
           .call(@zoomListener)
 

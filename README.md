@@ -21,7 +21,7 @@ See the [Proto REPL Clojure Conj 2016 talk video from 27:13](https://youtu.be/bu
   * View tooltip of information about a node and what was captured. -X
   * Double click display inline data - X
   * Allow Defing data from inline display - X
-  * Ability to expand all nodes or collapse all nodes.
+  * Ability to expand all nodes or collapse all nodes. - X
 * Eventually
   * Ability to filter out nodes easily or search it
 * Search for all TODOs
