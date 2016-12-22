@@ -18,7 +18,7 @@
  ;; Mini test
  (do
   (sayid/ws-add-trace-ns! test-ns)
-  (test-ns/chew 2)
+  (test-ns/chew 20)
   (display-last-captured))
 
  (-> (->> (sayid/ws-deref!) :children first :children first)

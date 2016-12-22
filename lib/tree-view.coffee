@@ -195,6 +195,8 @@ module.exports =
         d._children = d.children
         d._children.forEach (c)=>@collapse(c)
         d.children = null
+      else if d._children
+        d._children.forEach (c)=>@collapse(c)
 
     # Expands all the nodes that are the children of the given node.
     expand: (d)->
@@ -202,6 +204,9 @@ module.exports =
         d.children = d._children
         d.children.forEach (c)=>@expand(c)
         d._children = null
+      else if d.children
+        d.children.forEach (c)=>@expand(c)
+
 
     # Displays the sayid data in a D3 tree.
     display: (treeData)->
@@ -235,6 +240,7 @@ module.exports =
           .on("click", ()=>
             @expand(@root)
             @updateNode(@root)
+            @centerNode(@root)
           )
 
       # Collapse all button
@@ -244,6 +250,7 @@ module.exports =
           .on("click", ()=>
             @collapse(@root)
             @updateNode(@root)
+            @centerNode(@root)
           )
 
       @graphDiv = d3HolderDiv.append("div")
