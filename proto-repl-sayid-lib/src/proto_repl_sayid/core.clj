@@ -65,18 +65,6 @@
                      extract-name-children)]
     [:proto-repl-code-execution-extension "proto-repl-sayid" data]))
 
-;; TODO determine if keeping this.
-; (defn display-all-captured
-;   "Displays all of the captured data."
-;   []
-;   (let [data (->> (sayid/ws-deref!)
-;                   :children
-;                   (map extract-name-children)
-;                   ; (map extract-edges-and-nodes)
-;                   ;; TODO this won't work with the new tree combo. May want to get rid of this function.
-;                   (apply merge-with into))]
-;     [:proto-repl-code-execution-extension "proto-repl-sayid" data]))
-
 (defn- find-node-by-id
   [id]
   (-> (sayid/ws-query [:id (keyword (str id))])

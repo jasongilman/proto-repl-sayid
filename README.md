@@ -9,6 +9,22 @@ See the [Proto REPL Clojure Conj 2016 talk video from 27:13](https://youtu.be/bu
 ## TODOs
 
 
+* Recent Ideas
+  * Do larger test with real code as it is before making more changes.
+  * The ideas here are to make it dead simple to get the basic usability out of this.
+  * Toggling brings up the panel with Sayid Graph
+  * Toolbar is its own class (maybe)
+    * Buttons
+      * Start/Stop Recording
+      * Display last captured
+      * Clear Captured
+      * Expand all
+      * Collapse all
+  * Truncate very large trees in the call graph.
+  * Detect if proto repl sayid library is not present and report error.
+  * Detect if proto repl repl is not running
+
+
 * User Experience
   * Nodes from left to right - X
   * Expandable and collapsible - X

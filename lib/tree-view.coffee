@@ -226,9 +226,10 @@ module.exports =
           .attr("class", "btn")
           .text("Expand All")
           .on("click", ()=>
-            @expand(@root)
-            @updateNode(@root)
-            @centerNode(@root)
+            if @root
+              @expand(@root)
+              @updateNode(@root)
+              @centerNode(@root)
           )
 
       # Collapse all button
@@ -236,9 +237,10 @@ module.exports =
           .attr("class", "btn")
           .text("Collapse All")
           .on("click", ()=>
-            @collapse(@root)
-            @updateNode(@root)
-            @centerNode(@root)
+            if @root
+              @collapse(@root)
+              @updateNode(@root)
+              @centerNode(@root)
           )
 
       @graphDiv = d3HolderDiv.append("div")
@@ -339,6 +341,7 @@ module.exports =
               else
                 text = result.value
                 text = text.substring(1, text.length-1)
+                text = text + " <p>Double click show full details inline</p>"
                 @displayToolTip(text, x, y)
           )
         , 200)
@@ -346,7 +349,7 @@ module.exports =
     # Displays a tooltip with the given html at position x,y
     displayToolTip: (html, x, y)->
       @tooltipDiv.transition()
-          .duration(500)
+          .duration(100)
           .style("opacity", 0.9)
       @tooltipDiv.html(html)
           .style("left", x + "px")
