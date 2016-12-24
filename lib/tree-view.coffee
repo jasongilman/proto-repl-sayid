@@ -113,10 +113,57 @@ module.exports =
 
     constructor: () ->
       super
-      @showLoading()
+      @initiateView()
+      this
 
     serialize: ->
       deserializer : 'TreeView'
+
+    getURI: ->
+      "proto-repl-sayid://"
+
+    initiateView: ()->
+      holderDiv = document.createElement("div")
+      @html $ holderDiv
+
+      d3HolderDiv = d3.select(holderDiv)
+        .attr("class", "sayid-holder")
+
+      # Add toolbar
+      toolbar = d3HolderDiv.append("div")
+          .attr("class", "sayid-toolbar")
+        .append("div")
+          .attr("class", "bar")
+        .append("span")
+          .attr("class", "inline-block")
+
+      # Expand all button
+      toolbar.append("button")
+          .attr("class", "btn")
+          .text("Expand All")
+          .on("click", ()=>
+            if @root
+              @expand(@root)
+              @updateNode(@root)
+              @centerNode(@root)
+          )
+
+      # Collapse all button
+      toolbar.append("button")
+          .attr("class", "btn")
+          .text("Collapse All")
+          .on("click", ()=>
+            if @root
+              @collapse(@root)
+              @updateNode(@root)
+              @centerNode(@root)
+          )
+
+      @graphDiv = d3HolderDiv.append("div")
+                    .attr("class", "sayid-holder")
+      # size of the diagram
+      @viewerWidth = $(holderDiv).width()
+      @viewerHeight = $(holderDiv).height()
 
     # Defines the arguments that were captured by sayid.
     defArgsForNode: (id)->
@@ -207,52 +254,12 @@ module.exports =
 
     # Displays the sayid data in a D3 tree.
     display: (treeData)->
-      holderDiv = document.createElement("div")
-      @html $ holderDiv
-
-      d3HolderDiv = d3.select(holderDiv)
-        .attr("class", "sayid-holder")
-
-      # Add toolbar
-      toolbar = d3HolderDiv.append("div")
-          .attr("class", "sayid-toolbar")
-        .append("div")
-          .attr("class", "bar")
-        .append("span")
-          .attr("class", "inline-block")
-
-      # Expand all button
-      toolbar.append("button")
-          .attr("class", "btn")
-          .text("Expand All")
-          .on("click", ()=>
-            if @root
-              @expand(@root)
-              @updateNode(@root)
-              @centerNode(@root)
-          )
-
-      # Collapse all button
-      toolbar.append("button")
-          .attr("class", "btn")
-          .text("Collapse All")
-          .on("click", ()=>
-            if @root
-              @collapse(@root)
-              @updateNode(@root)
-              @centerNode(@root)
-          )
-
-      @graphDiv = d3HolderDiv.append("div")
-                    .attr("class", "sayid-holder")
+      @initiateView()
 
       @maxLabelLength = 0
       @root = null
       @nextNodeId = 0
 
-      # size of the diagram
-      @viewerWidth = $(holderDiv).width()
-      @viewerHeight = $(holderDiv).height()
       @tree = d3.layout.tree().size([@viewerHeight, @viewerWidth])
 
       # Define the div for the tooltip
@@ -524,7 +531,3 @@ module.exports =
 
     getTitle: ->
       NAME
-
-    showLoading: ->
-      @html $$$ ->
-        @div class: 'atom-html-spinner', 'Loading your visualization\u2026'
