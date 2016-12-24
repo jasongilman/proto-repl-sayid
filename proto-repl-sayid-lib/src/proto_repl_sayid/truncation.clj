@@ -59,7 +59,7 @@
     nm
     (let [[_ the-ns var-name] (re-matches #"([^/]+)/(.*)" nm)
           var-name-length (count var-name)]
-      (if (>= var-name-length max-length)
+      (if (>= var-name-length (dec max-length))
         (truncate-middle max-length var-name)
         (str (truncate-namespace (- max-length var-name-length 1) the-ns)
              "/" var-name)))))

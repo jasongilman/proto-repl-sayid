@@ -9,8 +9,7 @@ module.exports = ProtoReplSayid =
     maxDisplayedNameSize:
       description: "The maximum size of a displayed name in the graph."
       type: "number"
-      default: 32
-
+      default: 28
 
   subscriptions: null
 
