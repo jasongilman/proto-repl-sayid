@@ -1,10 +1,11 @@
 (ns proto-repl-sayid.core
   (:require
+   [clojure.pprint :as pprint]
    [clojure.string :as str]
-   [com.billpiel.sayid.core :as sayid]
    [clojure.tools.namespace.find :as ns-find]
+   [com.billpiel.sayid.core :as sayid]
    [proto-repl.extension-comm :as comm]
-   [clojure.pprint :as pprint]))
+   [proto-repl-sayid.truncation :as t]))
 
 
 ;; TODO write unit tests for this namespace. This is mainly to know if when
@@ -18,8 +19,7 @@
  ;; Mini test
  (do
   (sayid/ws-add-trace-ns! test-ns)
-  (test-ns/chew 20)
-  (display-last-captured))
+  (test-ns/chew 3))
 
  (-> (->> (sayid/ws-deref!) :children first :children first)
      (dissoc :meta)
@@ -48,21 +48,22 @@
 
 (defn- extract-name-children
   "Takes a sayid workspace node and recursively extracts out id, name, and children."
-  [node]
+  [max-name-length node]
   (-> node
       (select-keys [:name :children :id])
       (update :id #(Long. (name %)))
-      (update :name str)
+      (update :name #(->> % str (t/truncate-var-name max-name-length)))
       (update :children #(when (seq %)
-                           (mapv extract-name-children %)))))
+                           (mapv (partial extract-name-children max-name-length)
+                                 %)))))
 
 (defn display-last-captured
   "Displays the last set of captured data."
-  []
-  (let [data (some-> (sayid/ws-deref!)
-                     :children
-                     last
-                     extract-name-children)]
+  [max-name-length]
+  (let [data (some->> (sayid/ws-deref!)
+                      :children
+                      last
+                      (extract-name-children max-name-length))]
     [:proto-repl-code-execution-extension "proto-repl-sayid" data]))
 
 (defn- find-node-by-id
@@ -97,9 +98,9 @@
        :returned (pr-str return)})))
 
 (comment
- (find-node-by-id 12038)
- (retrieve-node-inline-data 12038)
- (node-tooltip-html 10983))
+ (find-node-by-id 18435)
+ (retrieve-node-inline-data 18435)
+ (node-tooltip-html 18435))
 
 (defn- arg->html
   "Formats an argument for display in a tooltip."
@@ -115,8 +116,10 @@
      {#'*print-length* 4
       #'*print-level* 4}
      (let [{:keys [return arg-map]} snode]
-       (format (str "<b>Arguments</b><ul>%s</ul>"
+       (format (str "<b>%s</b><br><br>"
+                    "<b>Arguments</b><ul>%s</ul>"
                     "<b>Returned:</b><p><code>%s</code></p>")
+               (:name snode)
                (str/join (map arg->html arg-map))
                (pr-str return))))))
 

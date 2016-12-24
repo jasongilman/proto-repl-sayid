@@ -5,6 +5,13 @@ url = require 'url'
 PROTOCOL = "proto-repl-sayid:"
 
 module.exports = ProtoReplSayid =
+  config:
+    maxDisplayedNameSize:
+      description: "The maximum size of a displayed name in the graph."
+      type: "number"
+      default: 32
+
+
   subscriptions: null
 
   treeView: null
@@ -38,10 +45,14 @@ module.exports = ProtoReplSayid =
 
     @subscriptions = new CompositeDisposable
     @addCommand("show-traced-namespaces", "proto-repl-sayid.core", "show-traced-namespaces")
-    @addCommand("trace-project-namespaces", "proto-repl-sayid.core", "trace-all-namespaces-in-project")
+    @addCommand("trace-project-namespaces", "proto-repl-sayid.core", "trace-all-project-namespaces")
     @addCommand("reset-trace", "com.billpiel.sayid.core", "ws-reset!")
     @addCommand("clear-captured", "com.billpiel.sayid.core", "ws-clear-log!")
-    @addCommand("display-last-captured", "proto-repl-sayid.core", "display-last-captured")
+
+    @subscriptions.add atom.commands.add 'atom-workspace', "proto-repl-sayid:display-last-captured": =>
+      window.protoRepl.executeCode("(do (require 'proto-repl-sayid.core)
+                                        (proto-repl-sayid.core/display-last-captured
+                                         #{atom.config.get("proto-repl-sayid.maxDisplayedNameSize")}))")
 
     atom.workspace.onDidDestroyPaneItem (event)=>
       item = event.item
