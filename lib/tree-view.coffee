@@ -62,7 +62,7 @@ ARG_SUMMARY_WITH_RETURN_MAX_LENGTH = (MAX_INLINE_WIDTH - ARG_RETURN_SEP.length) 
 
 
 PROTOCOL = "proto-repl-sayid:"
-NAME = "Sayid Call Graph"
+NAME = "Proto-REPL Sayid Call Graph"
 
 module.exports =
   class TreeView extends ScrollView

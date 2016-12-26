@@ -1,10 +1,29 @@
 # proto-repl-sayid package
 
-**This is a work in progress.**
+**This is a work in progress but it is available for alpha testing.**
 
 This is the future home of a package that provides an Atom Package that integrates [Proto REPL](https://github.com/jasongilman/proto-repl) and [Sayid](https://github.com/bpiel/sayid) to provide a visual call stack and debugging in Proto REPL.
 
 See the [Proto REPL Clojure Conj 2016 talk video from 27:13](https://youtu.be/buPPGxOnBnk?t=27m13s) and the [Sayid video](https://youtu.be/ipDhvd1NsmE) for background information.
+
+## Alpha Instructions
+
+### Install Proto REPL Sayid
+
+1. Install the proto-repl-sayid Atom package.
+2. Add the proto-repl-sayid clojure library to your dependencies. [![Clojars Project](https://img.shields.io/clojars/v/proto-repl-sayid.svg)](https://clojars.org/proto-repl-sayid)
+
+### Using Proto REPL Sayid
+
+1. Start a REPL using Proto REPL or connect to a REPL.
+2. Bring up the *Proto-REPL Sayid Call Graph* display. *Packages Menu* -> *proto-repl-sayid* -> *Toggle*
+3. Right click in the Atom tree view on a folder and select *Proto REPL Sayid* -> *Trace Directory/File*
+4. Execute some code. You can run a test or manually execute something.
+5. Click *Display Last Captured* in the *Proto-REPL Sayid Call Graph* tab.
+6. Hover above displayed noes to see details.
+7. Double click on a node to show the details inline.
+8. Click the *def* button to temporarily define the arguments the function received.
+
 
 ## TODOs
 
