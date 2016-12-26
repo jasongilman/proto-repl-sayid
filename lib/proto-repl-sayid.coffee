@@ -35,8 +35,15 @@ module.exports = ProtoReplSayid =
       if f
         f()
     else
+      toolBarButtons = {}
+      toolBarButtons["Trace Project Namespaces"] = => @traceProjectNamespaces()
+      toolBarButtons["Untrace All"] = => @untraceAll()
+      toolBarButtons["Clear Captured"] = => @clearCaptured()
+      toolBarButtons["Display Last Captured"] = => @displayLastCaptured()
+
       atom.workspace.open(URI, split: 'right', searchAllPanes: true).done (view)=>
         @treeView = view
+        @treeView.initiateView(toolBarButtons)
         if f
           f()
 
@@ -45,10 +52,38 @@ module.exports = ProtoReplSayid =
     @toggle =>
       @treeView.display(data)
 
-  # Helper for defining a command that calls a function on a namespace.
-  addCommand: (name, ns, fn)->
-    @subscriptions.add atom.commands.add 'atom-workspace', "proto-repl-sayid:#{name}": =>
+  executeFunction: (ns, fn)->
+    if window.protoRepl.running()
       window.protoRepl.executeCode("(do (require '#{ns}) (#{ns}/#{fn}))")
+    else
+      atom.notifications.addWarning "No REPL is connected and running", dismissable: true
+
+  # Displays traced namespaces in the REPL
+  # TODO this would be better to do in the GUI somehow
+  showTracedNamespaces: ->
+    @executeFunction("proto-repl-sayid.core", "show-traced-namespaces")
+
+  # Starts tracing all project namespaces.
+  traceProjectNamespaces: ->
+    @executeFunction("proto-repl-sayid.core", "trace-all-project-namespaces")
+
+  # Untraces everything
+  untraceAll: ->
+    @executeFunction("com.billpiel.sayid.core", "ws-reset!")
+
+    # Clears out traced data.
+  clearCaptured: ->
+    @executeFunction("com.billpiel.sayid.core", "ws-clear-log!")
+
+  # Displays data that was traced in the view.
+  displayLastCaptured: ->
+    if window.protoRepl.running()
+      window.protoRepl.executeCode("(do (require 'proto-repl-sayid.core)
+                                        (proto-repl-sayid.core/display-last-captured
+                                         #{atom.config.get("proto-repl-sayid.maxDisplayedNameSize")}))")
+    else
+      atom.notifications.addWarning "No REPL is connected and running", dismissable: true
+
 
   activate: (state) ->
     console.log("Proto REPL Sayid activated")
@@ -56,28 +91,17 @@ module.exports = ProtoReplSayid =
 
     @subscriptions = new CompositeDisposable
 
-    # Opens up the display
-    @subscriptions.add atom.commands.add 'atom-workspace', "proto-repl-sayid:toggle": =>
-      @toggle()
+    # Helper for defining a command that calls a method on this class..
+    addCommand = (name, f)=>
+      @subscriptions.add(atom.commands.add('atom-workspace', {"proto-repl-sayid:#{name}": f}))
 
-    # Displays traced namespaces in the REPL
-    # TODO this would be better to do in the GUI somehow
-    @addCommand("show-traced-namespaces", "proto-repl-sayid.core", "show-traced-namespaces")
+    addCommand "toggle", => @toggle()
+    addCommand "show-traced-namespaces", => @showTracedNamespaces()
+    addCommand "trace-project-namespaces", => @traceProjectNamespaces()
+    addCommand "untrace-all", => @untraceAll()
+    addCommand "clear-captured", => @clearCaptured()
+    addCommand "display-last-captured", => @displayLastCaptured()
 
-    # Starts tracing all project namespaces.
-    @addCommand("trace-project-namespaces", "proto-repl-sayid.core", "trace-all-project-namespaces")
-
-    # Untraces everything
-    @addCommand("reset-trace", "com.billpiel.sayid.core", "ws-reset!")
-
-    # Clears out traced data.
-    @addCommand("clear-captured", "com.billpiel.sayid.core", "ws-clear-log!")
-
-    # Displays data that was traced in the view.
-    @subscriptions.add atom.commands.add 'atom-workspace', "proto-repl-sayid:display-last-captured": =>
-      window.protoRepl.executeCode("(do (require 'proto-repl-sayid.core)
-                                        (proto-repl-sayid.core/display-last-captured
-                                         #{atom.config.get("proto-repl-sayid.maxDisplayedNameSize")}))")
 
     # The tab was closed
     atom.workspace.onDidDestroyPaneItem (event)=>

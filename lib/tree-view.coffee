@@ -67,9 +67,6 @@ NAME = "Sayid Call Graph"
 module.exports =
   class TreeView extends ScrollView
 
-    # Main div the holds the call graph
-    graphDiv: null
-
     # The longest label for a node that was found.
     maxLabelLength: null
 
@@ -103,26 +100,25 @@ module.exports =
     # d3 zooming behavior
     zoomListener: null
 
-    atom.deserializers.add(this)
+    toolbar: null
 
-    @deserialize: (state) ->
-      new TreeView()
+    # A map of strings to functions to call when the button is pressed.
+    toolbarButtons: {}
+
+    atom.deserializers.add(this)
 
     @content: ->
       @div class: 'proto-repl-sayid-graph native-key-bindings', tabindex: -1
 
     constructor: () ->
       super
-      @initiateView()
       this
-
-    serialize: ->
-      deserializer : 'TreeView'
 
     getURI: ->
       "proto-repl-sayid://"
 
-    initiateView: ()->
+    initiateView: (toolbarButtons)->
+      @toolbarButtons = toolbarButtons
       holderDiv = document.createElement("div")
       @html $ holderDiv
 
@@ -130,40 +126,45 @@ module.exports =
         .attr("class", "sayid-holder")
 
       # Add toolbar
-      toolbar = d3HolderDiv.append("div")
+      @toolbar = d3HolderDiv.append("div")
           .attr("class", "sayid-toolbar")
         .append("div")
           .attr("class", "bar")
         .append("span")
           .attr("class", "inline-block")
 
-      # Expand all button
-      toolbar.append("button")
+      addButton = (name, f)=>
+        @toolbar.append("button")
           .attr("class", "btn")
-          .text("Expand All")
-          .on("click", ()=>
-            if @root
-              @expand(@root)
-              @updateNode(@root)
-              @centerNode(@root)
-          )
+          .text(name)
+          .on("click", f)
+
+      for name, f of toolbarButtons
+        addButton(name, f)
+
+      # Expand all button
+      addButton "Expand All", ()=>
+        if @root
+          @expand(@root)
+          @updateNode(@root)
+          @centerNode(@root)
 
       # Collapse all button
-      toolbar.append("button")
-          .attr("class", "btn")
-          .text("Collapse All")
-          .on("click", ()=>
-            if @root
-              @collapse(@root)
-              @updateNode(@root)
-              @centerNode(@root)
-          )
+      addButton "Collapse All", ()=>
+        if @root
+          @collaps(@root)
+          @updateNode(@root)
+          @centerNode(@root)
+
 
       @graphDiv = d3HolderDiv.append("div")
                     .attr("class", "sayid-holder")
+
       # size of the diagram
       @viewerWidth = $(holderDiv).width()
       @viewerHeight = $(holderDiv).height()
+
+
 
     # Defines the arguments that were captured by sayid.
     defArgsForNode: (id)->
@@ -254,7 +255,7 @@ module.exports =
 
     # Displays the sayid data in a D3 tree.
     display: (treeData)->
-      @initiateView()
+      @initiateView(@toolbarButtons)
 
       @maxLabelLength = 0
       @root = null
