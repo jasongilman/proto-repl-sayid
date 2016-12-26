@@ -50,6 +50,13 @@ module.exports = ProtoReplSayid =
         if f
           f()
 
+  # Makes the pane with the Proto REPL repl show the repl.
+  showRepl: ->
+    replView = window.protoRepl.repl.replView
+    paneItem = replView.console || replView.textEditor
+    pane = atom.workspace.paneForItem(paneItem)
+    pane?.activateItem(paneItem)
+
   # Displays received data in the view
   display: (data)->
     @toggle =>
@@ -80,7 +87,7 @@ module.exports = ProtoReplSayid =
   # Displays traced namespaces in the REPL
   # TODO this would be better to do in the GUI somehow
   showTracedNamespaces: ->
-    # TODO could we shift the REPL to the front when this happens?
+    @showRepl()
     @executeFunction("proto-repl-sayid.core", "show-traced-namespaces")
 
   # Traces the current open file
