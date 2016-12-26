@@ -41,11 +41,6 @@
     (sayid/ws-add-trace-ns!* n))
   (sayid/ws-cycle-all-traces!))
 
-(defn trace-all-project-namespaces
-  "Traces all namespaces in the project assuming src is project dir"
-  []
-  (trace-all-namespaces-in-dir "src"))
-
 (defn- extract-name-children
   "Takes a sayid workspace node and recursively extracts out id, name, and children."
   [max-name-length node]

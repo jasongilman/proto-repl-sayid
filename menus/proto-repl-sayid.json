@@ -5,6 +5,12 @@
         "label": "Toggle proto-repl-sayid",
         "command": "proto-repl-sayid:toggle"
       }
+    ],
+    ".tree-view > li.directory":[
+      {
+        "label": "Sayid Trace Directory",
+        "command": "proto-repl-sayid:trace-directory"
+      }
     ]
   },
   "menu": [

@@ -36,7 +36,7 @@ module.exports = ProtoReplSayid =
         f()
     else
       toolBarButtons = {}
-      toolBarButtons["Trace Project Namespaces"] = => @traceProjectNamespaces()
+      toolBarButtons["Trace src"] = => @traceSrc()
       toolBarButtons["Untrace All"] = => @untraceAll()
       toolBarButtons["Clear Captured"] = => @clearCaptured()
       toolBarButtons["Display Last Captured"] = => @displayLastCaptured()
@@ -58,14 +58,23 @@ module.exports = ProtoReplSayid =
     else
       atom.notifications.addWarning "No REPL is connected and running", dismissable: true
 
+  # Traces all namesapces in the directory
+  traceDirectory: (dir)->
+    if window.protoRepl.running()
+      window.protoRepl.executeCode("(do (require 'proto-repl-sayid.core)
+                                        (proto-repl-sayid.core/trace-all-namespaces-in-dir \"#{dir}\"))")
+    else
+      atom.notifications.addWarning "No REPL is connected and running", dismissable: true
+
   # Displays traced namespaces in the REPL
   # TODO this would be better to do in the GUI somehow
   showTracedNamespaces: ->
+    # TODO could we shift the REPL to the front when this happens?
     @executeFunction("proto-repl-sayid.core", "show-traced-namespaces")
 
   # Starts tracing all project namespaces.
-  traceProjectNamespaces: ->
-    @executeFunction("proto-repl-sayid.core", "trace-all-project-namespaces")
+  traceSrc: ->
+    @traceDirectory("src")
 
   # Untraces everything
   untraceAll: ->
@@ -97,10 +106,12 @@ module.exports = ProtoReplSayid =
 
     addCommand "toggle", => @toggle()
     addCommand "show-traced-namespaces", => @showTracedNamespaces()
-    addCommand "trace-project-namespaces", => @traceProjectNamespaces()
+    addCommand "trace-src", => @traceSrc()
     addCommand "untrace-all", => @untraceAll()
     addCommand "clear-captured", => @clearCaptured()
     addCommand "display-last-captured", => @displayLastCaptured()
+    addCommand "trace-directory", (event)=>
+      @traceDirectory event.target.dataset.path
 
 
     # The tab was closed

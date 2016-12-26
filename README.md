@@ -8,18 +8,16 @@ See the [Proto REPL Clojure Conj 2016 talk video from 27:13](https://youtu.be/bu
 
 ## TODOs
 
-* Toggling brings up the panel with Sayid Graph
-* Toolbar is its own class (maybe)
-  * Buttons
-    * Start/Stop Recording
-    * Display last captured
-    * Clear Captured
-    * Expand all - X
-    * Collapse all - X
 * Detect if proto repl sayid library is not present and report error.
-* Detect if proto repl repl is not running
 * Handle trees that are too large (truncate nodes)
+* Context Menu options
+  * Main menu basic commands
+  * Within a file
+    * basic commands
+    * Trace current namespace
+    * Untrace current namespace
 * Eventually
+  * A better way to display the currently traced namespaces than in REPL. Would like to have a side panel with a list of namespaces. Would have ability to removed traced namespaces. Could also be a location for tracing by pattern.
   * Ability to filter out nodes easily or search it
 * Search for all TODOs
 * Unit test clojure code
