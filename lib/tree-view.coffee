@@ -152,7 +152,7 @@ module.exports =
       # Collapse all button
       addButton "Collapse All", ()=>
         if @root
-          @collaps(@root)
+          @collapse(@root)
           @updateNode(@root)
           @centerNode(@root)
 
