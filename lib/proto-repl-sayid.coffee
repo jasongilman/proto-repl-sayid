@@ -14,11 +14,11 @@ module.exports = ProtoReplSayid =
     maxDepth:
       description: "The maximum depth of the callstack to try to display. Setting this too high will take a long time when tracing very deep callstacks."
       type: "number"
-      default: 50
+      default: 100
     maxChildren:
       description: "The maximum number of children of a single node to try to display. Setting this too high will take a long time when tracing functions that make many calls."
       type: "number"
-      default: 30
+      default: 100
 
   subscriptions: null
 
