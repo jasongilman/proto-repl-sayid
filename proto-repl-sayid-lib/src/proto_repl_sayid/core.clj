@@ -41,6 +41,13 @@
     (sayid/ws-add-trace-ns!* n))
   (sayid/ws-cycle-all-traces!))
 
+(defn untrace-all-namespaces-in-dir
+  "Untraces all namespaces in the dir Extracted from Sayid nREPL middleware."
+  [dir]
+  (doseq [n (ns-find/find-namespaces-in-dir (java.io.File. dir))]
+    (sayid/ws-remove-trace-ns! n))
+  (sayid/ws-cycle-all-traces!))
+
 (defn- extract-name-children
   "Takes a sayid workspace node and recursively extracts out id, name, and children."
   [max-name-length node]

@@ -35,11 +35,14 @@ module.exports = ProtoReplSayid =
       if f
         f()
     else
+      # TODO make this a vector of tool bar button groups to provide grouping.
+      # And provide spacing between the destructive buttons.
+      # TODO consider icons
       toolBarButtons = {}
-      toolBarButtons["Trace src"] = => @traceSrc()
+      toolBarButtons["Show Traced Namespaces"] = => @showTracedNamespaces()
+      toolBarButtons["Display Last Captured"] = => @displayLastCaptured()
       toolBarButtons["Untrace All"] = => @untraceAll()
       toolBarButtons["Clear Captured"] = => @clearCaptured()
-      toolBarButtons["Display Last Captured"] = => @displayLastCaptured()
 
       atom.workspace.open(URI, split: 'right', searchAllPanes: true).done (view)=>
         @treeView = view
@@ -59,10 +62,18 @@ module.exports = ProtoReplSayid =
       atom.notifications.addWarning "No REPL is connected and running", dismissable: true
 
   # Traces all namesapces in the directory
-  traceDirectory: (dir)->
+  traceDirectoryOrFile: (dir)->
     if window.protoRepl.running()
       window.protoRepl.executeCode("(do (require 'proto-repl-sayid.core)
                                         (proto-repl-sayid.core/trace-all-namespaces-in-dir \"#{dir}\"))")
+    else
+      atom.notifications.addWarning "No REPL is connected and running", dismissable: true
+
+  # Untraces all namesapces in the directory
+  untraceDirectoryOrFile: (dir)->
+    if window.protoRepl.running()
+      window.protoRepl.executeCode("(do (require 'proto-repl-sayid.core)
+                                        (proto-repl-sayid.core/untrace-all-namespaces-in-dir \"#{dir}\"))")
     else
       atom.notifications.addWarning "No REPL is connected and running", dismissable: true
 
@@ -72,9 +83,14 @@ module.exports = ProtoReplSayid =
     # TODO could we shift the REPL to the front when this happens?
     @executeFunction("proto-repl-sayid.core", "show-traced-namespaces")
 
-  # Starts tracing all project namespaces.
-  traceSrc: ->
-    @traceDirectory("src")
+  # Traces the current open file
+  traceCurrentFile: (editor)->
+    window.theEditor = editor
+    @traceDirectoryOrFile(editor.getPath())
+
+  # Untraces the current open file
+  untraceCurrentFile: (editor)->
+    @untraceDirectoryOrFile(editor.getPath())
 
   # Untraces everything
   untraceAll: ->
@@ -106,12 +122,17 @@ module.exports = ProtoReplSayid =
 
     addCommand "toggle", => @toggle()
     addCommand "show-traced-namespaces", => @showTracedNamespaces()
-    addCommand "trace-src", => @traceSrc()
     addCommand "untrace-all", => @untraceAll()
     addCommand "clear-captured", => @clearCaptured()
     addCommand "display-last-captured", => @displayLastCaptured()
-    addCommand "trace-directory", (event)=>
-      @traceDirectory event.target.dataset.path
+    addCommand "trace-directory-or-file", (event)=>
+      @traceDirectoryOrFile event.target.dataset.path
+    addCommand "untrace-directory-or-file", (event)=>
+      @untraceDirectoryOrFile event.target.dataset.path
+    addCommand "trace-current-file", (event)=>
+      @traceCurrentFile event.target.component.editor
+    addCommand "untrace-current-file", (event)=>
+      @untraceCurrentFile event.target.component.editor
 
 
     # The tab was closed

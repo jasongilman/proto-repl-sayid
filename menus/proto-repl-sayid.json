@@ -1,17 +1,50 @@
 {
   "context-menu": {
     "atom-text-editor": [
-      {
-        "label": "Toggle proto-repl-sayid",
-        "command": "proto-repl-sayid:toggle"
-      }
+      {"label": "Proto REPL Sayid",
+       "submenu": [
+         {
+           "label": "Trace Current File",
+           "command": "proto-repl-sayid:trace-current-file"
+         },
+         {
+           "label": "Untrace Current File",
+           "command": "proto-repl-sayid:untrace-current-file"
+         },
+         {
+           "label": "Show View",
+           "command": "proto-repl-sayid:toggle"
+         },
+         {
+           "label": "Display Last Captured",
+           "command": "proto-repl-sayid:display-last-captured"
+         },
+         {
+           "label": "Show Traced Namespaces",
+           "command": "proto-repl-sayid:show-traced-namespaces"
+         },
+         {
+           "label": "Untrace All",
+           "command": "proto-repl-sayid:untrace-all"
+         },
+         {
+           "label": "Clear Captured",
+           "command": "proto-repl-sayid:clear-captured"
+         }
+       ]}
     ],
     ".tree-view > li.directory":[
-      {
-        "label": "Sayid Trace Directory",
-        "command": "proto-repl-sayid:trace-directory"
-      }
-    ]
+      {"label": "Proto REPL Sayid",
+       "submenu": [
+         {
+           "label": "Trace Directory/File",
+           "command": "proto-repl-sayid:trace-directory-or-file"
+         },
+         {
+           "label": "Untrace Directory/File",
+           "command": "proto-repl-sayid:untrace-directory-or-file"
+         }
+       ]}]
   },
   "menu": [
     {
@@ -23,6 +56,22 @@
             {
               "label": "Toggle",
               "command": "proto-repl-sayid:toggle"
+            },
+            {
+              "label": "Display Last Captured",
+              "command": "proto-repl-sayid:display-last-captured"
+            },
+            {
+              "label": "Show Traced Namespaces",
+              "command": "proto-repl-sayid:show-traced-namespaces"
+            },
+            {
+              "label": "Untrace All",
+              "command": "proto-repl-sayid:untrace-all"
+            },
+            {
+              "label": "Clear Captured",
+              "command": "proto-repl-sayid:clear-captured"
             }
           ]
         }
