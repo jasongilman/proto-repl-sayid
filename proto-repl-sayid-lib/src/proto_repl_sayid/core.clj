@@ -13,19 +13,9 @@
 
 
 (comment
- (show-traced-namespaces)
- (trace-all-project-namespaces)
-
  ;; Mini test
- (do
-  (sayid/ws-add-trace-ns! test-ns)
-  (test-ns/chew 3))
+ (test-ns/root 5))
 
- (-> (->> (sayid/ws-deref!) :children first :children first)
-     (dissoc :meta)
-     pr-str)
- (sayid/ws-reset!)
- (sayid/ws-clear-log!))
 
 
 (defn show-traced-namespaces
@@ -48,24 +38,62 @@
     (sayid/ws-remove-trace-ns! n))
   (sayid/ws-cycle-all-traces!))
 
-(defn- extract-name-children
+(declare extract-display-data)
+
+(def max-depth-exceeded-node
+  "Placeholder node used when the maximum configured depth is exceeded."
+  {:id -1
+   :name "..."
+   :children nil})
+
+(def max-depth-exceeded-tooltip
+  "Tooltip to show when hovering above max depth node."
+  (str "<b>Max Depth Exceeded</b>"
+       "<p>Maximum configured depth was exceeded. Either reduce the amount of traced"
+       " namespaces or increase depth in settings.</p>"))
+
+(def max-children-exceeded-node
+  "Placeholder node used when the maximum number of children is exceeded."
+  {:id -2
+   :name "..."
+   :children nil})
+
+(def max-children-exceeded-tooltip
+  "Tooltip to show above max children node"
+  (str "<b>Max Children Exceeded</b>"
+       "<p>Maximum configured number of children in a single node was exceeded. Either reduce the amount of traced"
+       " namespaces or increase size in settings.</p>"))
+
+(defn- extract-children
+  "Extracts display data from the child nodes."
+  [max-name-length max-depth max-children children]
+  (when (seq children)
+    (if (= 0 max-depth)
+      ;; The maximum depth was exceeded. Return place holder node.
+      [max-depth-exceeded-node]
+      (let [new-children (mapv #(extract-display-data max-name-length (dec max-depth) max-children %)
+                               (take max-children children))]
+        (if (> (count children) max-children)
+          ;; Max children exceeded. Add placeholder child
+          (conj new-children max-children-exceeded-node)
+          new-children)))))
+
+(defn- extract-display-data
   "Takes a sayid workspace node and recursively extracts out id, name, and children."
-  [max-name-length node]
+  [max-name-length max-depth max-children node]
   (-> node
       (select-keys [:name :children :id])
       (update :id #(Long. (name %)))
       (update :name #(->> % str (t/truncate-var-name max-name-length)))
-      (update :children #(when (seq %)
-                           (mapv (partial extract-name-children max-name-length)
-                                 %)))))
+      (update :children #(extract-children max-name-length max-depth max-children %))))
 
 (defn display-last-captured
   "Displays the last set of captured data."
-  [max-name-length]
+  [max-name-length max-depth max-children]
   (let [data (some->> (sayid/ws-deref!)
                       :children
                       last
-                      (extract-name-children max-name-length))]
+                      (extract-display-data max-name-length max-depth max-children))]
     [:proto-repl-code-execution-extension "proto-repl-sayid" data]))
 
 (defn- find-node-by-id
@@ -112,18 +140,26 @@
 (defn node-tooltip-html
   "Returns an HTML string of information to display for the given node in a tooltip."
   [id]
-  (when-let [snode (find-node-by-id id)]
-    ;; Limit the depth of things that are printed for tooltips
-    (with-bindings
-     {#'*print-length* 4
-      #'*print-level* 4}
-     (let [{:keys [return arg-map]} snode]
-       (format (str "<b>%s</b><br><br>"
-                    "<b>Arguments</b><ul>%s</ul>"
-                    "<b>Returned:</b><p><code>%s</code></p>")
-               (:name snode)
-               (str/join (map arg->html arg-map))
-               (pr-str return))))))
+  (cond
+    (= id (:id max-depth-exceeded-node))
+    max-depth-exceeded-tooltip
+
+    (= id (:id max-children-exceeded-node))
+    max-children-exceeded-tooltip
+
+    :else
+    (when-let [snode (find-node-by-id id)]
+      ;; Limit the depth of things that are printed for tooltips
+      (with-bindings
+       {#'*print-length* 4
+        #'*print-level* 4}
+       (let [{:keys [return arg-map]} snode]
+         (format (str "<b>%s</b><br><br>"
+                      "<b>Arguments</b><ul>%s</ul>"
+                      "<b>Returned:</b><p><code>%s</code></p>")
+                 (:name snode)
+                 (str/join (map arg->html arg-map))
+                 (pr-str return)))))))
 
 (defn def-args-for-node
   "Defines arguments captured in a sayid node as temporary vars of the namespace."

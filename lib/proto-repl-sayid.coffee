@@ -11,6 +11,14 @@ module.exports = ProtoReplSayid =
       description: "The maximum size of a displayed name in the graph."
       type: "number"
       default: 28
+    maxDepth:
+      description: "The maximum depth of the callstack to try to display. Setting this too high will take a long time when tracing very deep callstacks."
+      type: "number"
+      default: 50
+    maxChildren:
+      description: "The maximum number of children of a single node to try to display. Setting this too high will take a long time when tracing functions that make many calls."
+      type: "number"
+      default: 30
 
   subscriptions: null
 
@@ -40,6 +48,7 @@ module.exports = ProtoReplSayid =
       # TODO consider icons
       toolBarButtons = {}
       toolBarButtons["Show Traced Namespaces"] = => @showTracedNamespaces()
+      toolBarButtons["Retrace All"] = => @retraceAll()
       toolBarButtons["Display Last Captured"] = => @displayLastCaptured()
       toolBarButtons["Untrace All"] = => @untraceAll()
       toolBarButtons["Clear Captured"] = => @clearCaptured()
@@ -92,12 +101,15 @@ module.exports = ProtoReplSayid =
 
   # Traces the current open file
   traceCurrentFile: (editor)->
-    window.theEditor = editor
     @traceDirectoryOrFile(editor.getPath())
 
   # Untraces the current open file
   untraceCurrentFile: (editor)->
     @untraceDirectoryOrFile(editor.getPath())
+
+  # Retraces all the traced namespaces
+  retraceAll: ->
+    @executeFunction("com.billpiel.sayid.core", "ws-cycle-all-traces!")
 
   # Untraces everything
   untraceAll: ->
@@ -112,7 +124,9 @@ module.exports = ProtoReplSayid =
     if window.protoRepl.running()
       window.protoRepl.executeCode("(do (require 'proto-repl-sayid.core)
                                         (proto-repl-sayid.core/display-last-captured
-                                         #{atom.config.get("proto-repl-sayid.maxDisplayedNameSize")}))")
+                                         #{atom.config.get("proto-repl-sayid.maxDisplayedNameSize")}
+                                         #{atom.config.get("proto-repl-sayid.maxDepth")}
+                                         #{atom.config.get("proto-repl-sayid.maxChildren")}))")
     else
       atom.notifications.addWarning "No REPL is connected and running", dismissable: true
 
@@ -129,6 +143,7 @@ module.exports = ProtoReplSayid =
 
     addCommand "toggle", => @toggle()
     addCommand "show-traced-namespaces", => @showTracedNamespaces()
+    addCommand "retrace-all", => @retraceAll()
     addCommand "untrace-all", => @untraceAll()
     addCommand "clear-captured", => @clearCaptured()
     addCommand "display-last-captured", => @displayLastCaptured()
