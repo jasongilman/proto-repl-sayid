@@ -1,7 +1,7 @@
 {
   "name": "proto-repl-sayid",
   "main": "./lib/proto-repl-sayid",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Proto REPL Sayid integration that provides a visual call stack and debugging",
   "keywords": [
     "clojure",
