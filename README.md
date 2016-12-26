@@ -16,11 +16,11 @@ See the [Proto REPL Clojure Conj 2016 talk video from 27:13](https://youtu.be/bu
 ### Using Proto REPL Sayid
 
 1. Start a REPL using Proto REPL or connect to a REPL.
-2. Bring up the *Proto-REPL Sayid Call Graph* display. *Packages Menu* -> *proto-repl-sayid* -> *Toggle*
+2. Bring up the *Proto-REPL Sayid Call Graph* display. Click *Packages* -> *proto-repl-sayid* -> *Toggle*
 3. Right click in the Atom tree view on a folder and select *Proto REPL Sayid* -> *Trace Directory/File*
 4. Execute some code. You can run a test or manually execute something.
 5. Click *Display Last Captured* in the *Proto-REPL Sayid Call Graph* tab.
-6. Hover above displayed noes to see details.
+6. Hover above displayed nodes to see details.
 7. Double click on a node to show the details inline.
 8. Click the *def* button to temporarily define the arguments the function received.
 
