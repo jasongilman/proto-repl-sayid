@@ -135,26 +135,43 @@ module.exports =
 
       addButtonGroup = (buttons)=>
         group = @toolbar.append("div").attr("class", "btn-group")
-        for name, f of buttons
-          group.append("button")
-            .attr("class", "btn")
-            .text(name)
-            .on("click", f)
+        for button in buttons
+          btn = group.append("button")
+          if button.icon
+            if button.iconset
+              btn.attr("class", "btn #{button.iconset} #{button.iconset}-#{button.icon}")
+                .attr("alt", button.name)
+            else
+              btn.attr("class", "btn icon icon-#{button.icon}")
+                .attr("alt", button.name)
+          else
+              btn.attr("class", "btn")
+          btn.text(button.name)
+          btn.on("click", button.onClick)
 
       for group in toolBarButtonGroups
         addButtonGroup(group)
 
-      builtinGroup = {}
-      builtinGroup["Expand All"]= ()=>
+      builtinGroup = []
+
+      builtinGroup.push(
+        name: "Expand",
+        icon: 'plus',
+        onClick: ()=>
+          if @root
+            @expand(@root)
+            @updateNode(@root)
+            @centerNode(@root)
+      )
+      builtinGroup.push(
+       name: "Collapse",
+       icon: "dash",
+       onClick: ()=>
         if @root
           @expand(@root)
           @updateNode(@root)
           @centerNode(@root)
-      builtinGroup["Collapse All"]= ()=>
-        if @root
-          @expand(@root)
-          @updateNode(@root)
-          @centerNode(@root)
+      )
 
       addButtonGroup builtinGroup
 

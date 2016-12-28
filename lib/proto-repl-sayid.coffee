@@ -43,18 +43,39 @@ module.exports = ProtoReplSayid =
       if f
         f()
     else
-      # TODO make this a vector of tool bar button groups to provide grouping.
-      # And provide spacing between the destructive buttons.
-      # TODO consider icons
-      infoButtons = {}
-      infoButtons["Show Traced Namespaces"] = => @showTracedNamespaces()
-      displayButtons = {}
-      displayButtons["Display Last Captured"] = => @displayLastCaptured()
-      displayButtons["Display All Captured"] = => @displayAllCaptured()
-      actionButtons = {}
-      actionButtons["Reapply Traces"] = => @reapplyTraces()
-      actionButtons["Untrace All"] = => @untraceAll()
-      actionButtons["Clear Captured"] = => @clearCaptured()
+      infoButtons = []
+      infoButtons.push(
+         name: "Traced NS",
+         icon: "list-ordered"
+         onClick: ()=> @showTracedNamespaces()
+      )
+      displayButtons = []
+      displayButtons.push(
+        name: "Last Captured",
+        icon: "eye",
+        onClick: ()=> @displayLastCaptured()
+      )
+      displayButtons.push(
+        name: "All Captured",
+        icon: "eye",
+        onClick: ()=> @displayAllCaptured()
+      )
+      actionButtons = []
+      actionButtons.push(
+        name: "Reapply Traces",
+        icon: "sync"
+        onClick: ()=> @reapplyTraces()
+      )
+      actionButtons.push(
+        name: "Untrace All",
+        icon: "trashcan"
+        onClick: ()=> @untraceAll()
+      )
+      actionButtons.push(
+        name: "Clear Captured",
+        icon: "x"
+        onClick: ()=> @clearCaptured()
+      )
 
       atom.workspace.open(URI, split: 'right', searchAllPanes: true).done (view)=>
         @treeView = view
