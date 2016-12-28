@@ -83,12 +83,19 @@ module.exports = ProtoReplSayid =
         if f
           f()
 
+  onlyIfReplRunning: (f)->
+    if window.protoRepl.running()
+      f()
+    else
+      atom.notifications.addWarning "No REPL is connected and running", dismissable: true
+
   # Makes the pane with the Proto REPL repl show the repl.
   showRepl: ->
-    replView = window.protoRepl.repl.replView
-    paneItem = replView.console || replView.textEditor
-    pane = atom.workspace.paneForItem(paneItem)
-    pane?.activateItem(paneItem)
+    @onlyIfReplRunning =>
+      replView = window.protoRepl.repl.replView
+      paneItem = replView.console || replView.textEditor
+      pane = atom.workspace.paneForItem(paneItem)
+      pane?.activateItem(paneItem)
 
   # Displays received data in the view
   display: (data)->
@@ -96,26 +103,20 @@ module.exports = ProtoReplSayid =
       @treeView.display(data)
 
   executeFunction: (ns, fn)->
-    if window.protoRepl.running()
+    @onlyIfReplRunning =>
       window.protoRepl.executeCode("(do (require '#{ns}) (#{ns}/#{fn}))")
-    else
-      atom.notifications.addWarning "No REPL is connected and running", dismissable: true
 
   # Traces all namesapces in the directory
   traceDirectoryOrFile: (dir)->
-    if window.protoRepl.running()
+    @onlyIfReplRunning =>
       window.protoRepl.executeCode("(do (require 'proto-repl-sayid.core)
                                         (proto-repl-sayid.core/trace-all-namespaces-in-dir \"#{dir}\"))")
-    else
-      atom.notifications.addWarning "No REPL is connected and running", dismissable: true
 
   # Untraces all namesapces in the directory
   untraceDirectoryOrFile: (dir)->
-    if window.protoRepl.running()
+    @onlyIfReplRunning =>
       window.protoRepl.executeCode("(do (require 'proto-repl-sayid.core)
                                         (proto-repl-sayid.core/untrace-all-namespaces-in-dir \"#{dir}\"))")
-    else
-      atom.notifications.addWarning "No REPL is connected and running", dismissable: true
 
   # Displays traced namespaces in the REPL
   # TODO this would be better to do in the GUI somehow
