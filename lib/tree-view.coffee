@@ -150,7 +150,7 @@ module.exports =
           @expand(@root)
           @updateNode(@root)
           @centerNode(@root)
-      builtinGroup["Collaps All"]= ()=>
+      builtinGroup["Collapse All"]= ()=>
         if @root
           @expand(@root)
           @updateNode(@root)
