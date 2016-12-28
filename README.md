@@ -2,18 +2,15 @@
 
 **This is a work in progress but it is available for alpha testing.**
 
-This is the future home of a package that provides an Atom Package that integrates [Proto REPL](https://github.com/jasongilman/proto-repl) and [Sayid](https://github.com/bpiel/sayid) to provide a visual call stack and debugging in Proto REPL.
+Proto REPL Sayid is an Atom Package that integrates [Proto REPL](https://github.com/jasongilman/proto-repl) and [Sayid](https://github.com/bpiel/sayid) to provide a visual call stack in Proto REPL.
 
-See the [Proto REPL Clojure Conj 2016 talk video from 27:13](https://youtu.be/buPPGxOnBnk?t=27m13s) and the [Sayid video](https://youtu.be/ipDhvd1NsmE) for background information.
 
-## Alpha Instructions
-
-### Install Proto REPL Sayid
+## Installation Instructions
 
 1. Install the proto-repl-sayid Atom package.
-2. Add the proto-repl-sayid clojure library to your dependencies. [![Clojars Project](https://img.shields.io/clojars/v/proto-repl-sayid.svg)](https://clojars.org/proto-repl-sayid)
+2. Add the proto-repl-sayid Clojure library to your dependencies. [![Clojars Project](https://img.shields.io/clojars/v/proto-repl-sayid.svg)](https://clojars.org/proto-repl-sayid)
 
-### Using Proto REPL Sayid
+## Usage
 
 1. Start a REPL using Proto REPL or connect to a REPL.
 2. Bring up the *Proto-REPL Sayid Call Graph* display. Click *Packages* -> *proto-repl-sayid* -> *Toggle*
@@ -24,6 +21,11 @@ See the [Proto REPL Clojure Conj 2016 talk video from 27:13](https://youtu.be/bu
 7. Double click on a node to show the details inline.
 8. Click the *def* button to temporarily define the arguments the function received.
 
+## Videos
+
+* Background before the plugin existed
+  * [Proto REPL Clojure Conj 2016 talk video from 27:13](https://youtu.be/buPPGxOnBnk?t=27m13s)
+  * [Sayid Clojure Conj talk](https://youtu.be/ipDhvd1NsmE) for background information.
 
 ## TODOs
 
@@ -38,6 +40,7 @@ See the [Proto REPL Clojure Conj 2016 talk video from 27:13](https://youtu.be/bu
   * gif of it in action.
   * Use instructions
 * Update proto repl demo to show this integration
+* Update proto repl installation instructions to include this.
 * Media
   * video of package in use?
   * blog post?

@@ -20,6 +20,10 @@
            "command": "proto-repl-sayid:display-last-captured"
          },
          {
+           "label": "Display All Captured",
+           "command": "proto-repl-sayid:display-all-captured"
+         },
+         {
            "label": "Show Traced Namespaces",
            "command": "proto-repl-sayid:show-traced-namespaces"
          },
@@ -60,6 +64,10 @@
             {
               "label": "Display Last Captured",
               "command": "proto-repl-sayid:display-last-captured"
+            },
+            {
+              "label": "Display All Captured",
+              "command": "proto-repl-sayid:display-all-captured"
             },
             {
               "label": "Show Traced Namespaces",

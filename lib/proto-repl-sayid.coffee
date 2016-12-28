@@ -50,6 +50,7 @@ module.exports = ProtoReplSayid =
       toolBarButtons["Show Traced Namespaces"] = => @showTracedNamespaces()
       toolBarButtons["Retrace All"] = => @retraceAll()
       toolBarButtons["Display Last Captured"] = => @displayLastCaptured()
+      toolBarButtons["Display All Captured"] = => @displayAllCaptured()
       toolBarButtons["Untrace All"] = => @untraceAll()
       toolBarButtons["Clear Captured"] = => @clearCaptured()
 
@@ -119,11 +120,23 @@ module.exports = ProtoReplSayid =
   clearCaptured: ->
     @executeFunction("com.billpiel.sayid.core", "ws-clear-log!")
 
+
   # Displays data that was traced in the view.
   displayLastCaptured: ->
     if window.protoRepl.running()
       window.protoRepl.executeCode("(do (require 'proto-repl-sayid.core)
                                         (proto-repl-sayid.core/display-last-captured
+                                         #{atom.config.get("proto-repl-sayid.maxDisplayedNameSize")}
+                                         #{atom.config.get("proto-repl-sayid.maxDepth")}
+                                         #{atom.config.get("proto-repl-sayid.maxChildren")}))")
+    else
+      atom.notifications.addWarning "No REPL is connected and running", dismissable: true
+
+  # Displays all captured data that was traced in the view.
+  displayAllCaptured: ->
+    if window.protoRepl.running()
+      window.protoRepl.executeCode("(do (require 'proto-repl-sayid.core)
+                                        (proto-repl-sayid.core/display-all-captured
                                          #{atom.config.get("proto-repl-sayid.maxDisplayedNameSize")}
                                          #{atom.config.get("proto-repl-sayid.maxDepth")}
                                          #{atom.config.get("proto-repl-sayid.maxChildren")}))")
@@ -147,6 +160,7 @@ module.exports = ProtoReplSayid =
     addCommand "untrace-all", => @untraceAll()
     addCommand "clear-captured", => @clearCaptured()
     addCommand "display-last-captured", => @displayLastCaptured()
+    addCommand "display-all-captured", => @displayAllCaptured()
     addCommand "trace-directory-or-file", (event)=>
       @traceDirectoryOrFile event.target.dataset.path
     addCommand "untrace-directory-or-file", (event)=>

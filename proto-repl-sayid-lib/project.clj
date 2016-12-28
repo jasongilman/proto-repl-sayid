@@ -1,4 +1,4 @@
-(defproject proto-repl-sayid "0.1.1"
+(defproject proto-repl-sayid "0.1.2"
   :description "Proto REPL Sayid integration that provides a visual call stack and debugging"
   :url "https://github.com/jasongilman/proto-repl-sayid"
   :license {:name "MIT"

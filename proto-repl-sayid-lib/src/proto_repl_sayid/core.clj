@@ -22,7 +22,7 @@
   "Prints the current traced namespaces"
   []
   (println "Currently Traced Namespaces")
-  (pprint/pprint (seq (:ns (sayid/ws-show-traced*)))))
+  (pprint/pprint (sort (seq (:ns (sayid/ws-show-traced*))))))
 
 (defn trace-all-namespaces-in-dir
   "Traces all namespaces in the dir Extracted from Sayid nREPL middleware."
@@ -83,7 +83,7 @@
   [max-name-length max-depth max-children node]
   (-> node
       (select-keys [:name :children :id])
-      (update :id #(Long. (name %)))
+      (update :id #(name %))
       (update :name #(->> % str (t/truncate-var-name max-name-length)))
       (update :children #(extract-children max-name-length max-depth max-children %))))
 
@@ -93,6 +93,13 @@
   (let [data (some->> (sayid/ws-deref!)
                       :children
                       last
+                      (extract-display-data max-name-length max-depth max-children))]
+    [:proto-repl-code-execution-extension "proto-repl-sayid" data]))
+
+(defn display-all-captured
+  "Displays all the captured data."
+  [max-name-length max-depth max-children]
+  (let [data (some->> (sayid/ws-deref!)
                       (extract-display-data max-name-length max-depth max-children))]
     [:proto-repl-code-execution-extension "proto-repl-sayid" data]))
 
