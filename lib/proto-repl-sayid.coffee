@@ -51,12 +51,12 @@ module.exports = ProtoReplSayid =
       )
       displayButtons = []
       displayButtons.push(
-        name: "Last Captured",
+        name: "Display Last",
         icon: "eye",
         onClick: ()=> @displayLastCaptured()
       )
       displayButtons.push(
-        name: "All Captured",
+        name: "Display All",
         icon: "eye",
         onClick: ()=> @displayAllCaptured()
       )
