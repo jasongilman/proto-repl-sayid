@@ -46,17 +46,19 @@ module.exports = ProtoReplSayid =
       # TODO make this a vector of tool bar button groups to provide grouping.
       # And provide spacing between the destructive buttons.
       # TODO consider icons
-      toolBarButtons = {}
-      toolBarButtons["Show Traced Namespaces"] = => @showTracedNamespaces()
-      toolBarButtons["Retrace All"] = => @retraceAll()
-      toolBarButtons["Display Last Captured"] = => @displayLastCaptured()
-      toolBarButtons["Display All Captured"] = => @displayAllCaptured()
-      toolBarButtons["Untrace All"] = => @untraceAll()
-      toolBarButtons["Clear Captured"] = => @clearCaptured()
+      infoButtons = {}
+      infoButtons["Show Traced Namespaces"] = => @showTracedNamespaces()
+      displayButtons = {}
+      displayButtons["Display Last Captured"] = => @displayLastCaptured()
+      displayButtons["Display All Captured"] = => @displayAllCaptured()
+      actionButtons = {}
+      actionButtons["Reapply Traces"] = => @reapplyTraces()
+      actionButtons["Untrace All"] = => @untraceAll()
+      actionButtons["Clear Captured"] = => @clearCaptured()
 
       atom.workspace.open(URI, split: 'right', searchAllPanes: true).done (view)=>
         @treeView = view
-        @treeView.initiateView(toolBarButtons)
+        @treeView.initiateView([infoButtons, displayButtons, actionButtons])
         if f
           f()
 
@@ -109,7 +111,7 @@ module.exports = ProtoReplSayid =
     @untraceDirectoryOrFile(editor.getPath())
 
   # Retraces all the traced namespaces
-  retraceAll: ->
+  reapplyTraces: ->
     @executeFunction("com.billpiel.sayid.core", "ws-cycle-all-traces!")
 
   # Untraces everything
@@ -156,7 +158,7 @@ module.exports = ProtoReplSayid =
 
     addCommand "toggle", => @toggle()
     addCommand "show-traced-namespaces", => @showTracedNamespaces()
-    addCommand "retrace-all", => @retraceAll()
+    addCommand "reapply-traces", => @reapplyTraces()
     addCommand "untrace-all", => @untraceAll()
     addCommand "clear-captured", => @clearCaptured()
     addCommand "display-last-captured", => @displayLastCaptured()

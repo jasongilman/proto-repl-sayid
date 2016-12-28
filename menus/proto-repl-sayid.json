@@ -28,6 +28,10 @@
            "command": "proto-repl-sayid:show-traced-namespaces"
          },
          {
+           "label": "Reapply Traces",
+           "command": "proto-repl-sayid:reapply-traces"
+         },
+         {
            "label": "Untrace All",
            "command": "proto-repl-sayid:untrace-all"
          },
@@ -72,6 +76,10 @@
             {
               "label": "Show Traced Namespaces",
               "command": "proto-repl-sayid:show-traced-namespaces"
+            },
+            {
+              "label": "Reapply Traces",
+              "command": "proto-repl-sayid:reapply-traces"
             },
             {
               "label": "Untrace All",

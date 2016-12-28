@@ -103,7 +103,7 @@ module.exports =
     toolbar: null
 
     # A map of strings to functions to call when the button is pressed.
-    toolbarButtons: {}
+    toolBarButtonGroups: {}
 
     atom.deserializers.add(this)
 
@@ -117,8 +117,8 @@ module.exports =
     getURI: ->
       "proto-repl-sayid://"
 
-    initiateView: (toolbarButtons)->
-      @toolbarButtons = toolbarButtons
+    initiateView: (toolBarButtonGroups)->
+      @toolBarButtonGroups = toolBarButtonGroups
       holderDiv = document.createElement("div")
       @html $ holderDiv
 
@@ -133,28 +133,30 @@ module.exports =
         .append("span")
           .attr("class", "inline-block")
 
-      addButton = (name, f)=>
-        @toolbar.append("button")
-          .attr("class", "btn")
-          .text(name)
-          .on("click", f)
+      addButtonGroup = (buttons)=>
+        group = @toolbar.append("div").attr("class", "btn-group")
+        for name, f of buttons
+          group.append("button")
+            .attr("class", "btn")
+            .text(name)
+            .on("click", f)
 
-      for name, f of toolbarButtons
-        addButton(name, f)
+      for group in toolBarButtonGroups
+        addButtonGroup(group)
 
-      # Expand all button
-      addButton "Expand All", ()=>
+      builtinGroup = {}
+      builtinGroup["Expand All"]= ()=>
+        if @root
+          @expand(@root)
+          @updateNode(@root)
+          @centerNode(@root)
+      builtinGroup["Collaps All"]= ()=>
         if @root
           @expand(@root)
           @updateNode(@root)
           @centerNode(@root)
 
-      # Collapse all button
-      addButton "Collapse All", ()=>
-        if @root
-          @collapse(@root)
-          @updateNode(@root)
-          @centerNode(@root)
+      addButtonGroup builtinGroup
 
 
       @graphDiv = d3HolderDiv.append("div")
@@ -255,7 +257,7 @@ module.exports =
 
     # Displays the sayid data in a D3 tree.
     display: (treeData)->
-      @initiateView(@toolbarButtons)
+      @initiateView(@toolBarButtonGroups)
 
       @maxLabelLength = 0
       @root = null
