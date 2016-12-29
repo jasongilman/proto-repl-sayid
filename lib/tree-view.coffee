@@ -168,7 +168,7 @@ module.exports =
        icon: "dash",
        onClick: ()=>
         if @root
-          @expand(@root)
+          @collapse(@root)
           @updateNode(@root)
           @centerNode(@root)
       )

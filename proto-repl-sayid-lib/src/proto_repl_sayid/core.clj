@@ -16,25 +16,68 @@
  ;; Mini test
  (test-ns/root 5))
 
+(def never-traced-namespace-patterns
+  "A list of patterns matching namespace names to never trace"
+  [#"com.billpiel.sayid.*"
+   #"proto-repl.*"
+   #"clojure.tools.nrepl.*"])
 
+(defn- trace-namespace?
+  "Returns true if a namespace can be traced"
+  [the-ns]
+  (let [the-ns (str the-ns)]
+    (not (some #(re-find % the-ns) never-traced-namespace-patterns))))
 
 (defn show-traced-namespaces
   "Prints the current traced namespaces"
   []
   (println "Currently Traced Namespaces")
-  (pprint/pprint (sort (seq (:ns (sayid/ws-show-traced*))))))
+  (pprint/pprint (sort-by str (seq (:ns (sayid/ws-show-traced*))))))
+
+(defn- find-ns-by-pattern
+  "Looks for namespaces using a simple pattern. * means any characters. Every
+   other character is taken literally"
+  [pattern]
+  (let [regex (-> pattern
+                  ;; Treat . as literal
+                  (str/replace "." "\\.")
+                  ;; Treat * as matching 0 to many characters
+                  (str/replace "*" ".*")
+                  re-pattern)]
+    (filter #(re-find regex (str %)) (all-ns))))
+
+(defn trace-namespaces-by-pattern
+  "Traces all namespaces matching a pattern"
+  [pattern]
+  (doseq [n (filter trace-namespace? (find-ns-by-pattern pattern))]
+    (sayid/ws-add-trace-ns!* n))
+  (sayid/ws-cycle-all-traces!))
+
+(comment
+ (trace-namespaces-by-pattern "*")
+
+ (+ 1 1)
+ (sort (map str (filter trace-namespace? (find-ns-by-pattern "*")))))
+
+
+(defn untrace-namespaces-by-pattern
+  "Untraces all namespaces matching a pattern"
+  [pattern]
+  (doseq [n (find-ns-by-pattern pattern)]
+    (sayid/ws-remove-trace-ns! n))
+  (sayid/ws-cycle-all-traces!))
 
 (defn trace-all-namespaces-in-dir
   "Traces all namespaces in the dir Extracted from Sayid nREPL middleware."
   [dir]
-  (doseq [n (ns-find/find-namespaces-in-dir (java.io.File. dir))]
+  (doseq [n (filter trace-namespace? (ns-find/find-namespaces-in-dir (java.io.File. dir)))]
     (sayid/ws-add-trace-ns!* n))
   (sayid/ws-cycle-all-traces!))
 
 (defn untrace-all-namespaces-in-dir
   "Untraces all namespaces in the dir Extracted from Sayid nREPL middleware."
   [dir]
-  (doseq [n (ns-find/find-namespaces-in-dir (java.io.File. dir))]
+  (doseq [n (filter trace-namespace? (ns-find/find-namespaces-in-dir (java.io.File. dir)))]
     (sayid/ws-remove-trace-ns! n))
   (sayid/ws-cycle-all-traces!))
 

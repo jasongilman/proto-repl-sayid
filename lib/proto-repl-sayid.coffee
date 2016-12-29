@@ -1,6 +1,7 @@
-TreeView = require './tree-view'
 {CompositeDisposable} = require 'atom'
 url = require 'url'
+TreeView = require './tree-view'
+FilterView = require './filter-view'
 
 PROTOCOL = "proto-repl-sayid:"
 URI = "#{PROTOCOL}//"
@@ -43,9 +44,24 @@ module.exports = ProtoReplSayid =
       if f
         f()
     else
-      infoButtons = []
-      infoButtons.push(
-         name: "Traced NS",
+      traceButtons = []
+      traceButtons.push(
+        name: "Reapply",
+        icon: "sync"
+        onClick: ()=> @reapplyTraces()
+      )
+      traceButtons.push(
+        name: "Add",
+        icon: "diff-added"
+        onClick: ()=> @displayAddFilterView()
+      )
+      traceButtons.push(
+        name: "Remove",
+        icon: "diff-removed"
+        onClick: ()=> @displayRemoveFilterView()
+      )
+      traceButtons.push(
+         name: "List",
          icon: "list-ordered"
          onClick: ()=> @showTracedNamespaces()
       )
@@ -62,11 +78,6 @@ module.exports = ProtoReplSayid =
       )
       actionButtons = []
       actionButtons.push(
-        name: "Reapply Traces",
-        icon: "sync"
-        onClick: ()=> @reapplyTraces()
-      )
-      actionButtons.push(
         name: "Untrace All",
         icon: "trashcan"
         onClick: ()=> @untraceAll()
@@ -79,7 +90,7 @@ module.exports = ProtoReplSayid =
 
       atom.workspace.open(URI, split: 'right', searchAllPanes: true).done (view)=>
         @treeView = view
-        @treeView.initiateView([infoButtons, displayButtons, actionButtons])
+        @treeView.initiateView([traceButtons, displayButtons, actionButtons])
         if f
           f()
 
@@ -118,6 +129,23 @@ module.exports = ProtoReplSayid =
       window.protoRepl.executeCode("(do (require 'proto-repl-sayid.core)
                                         (proto-repl-sayid.core/untrace-all-namespaces-in-dir \"#{dir}\"))")
 
+  # Brings up a view to trace namespaces matching a pattern.
+  displayAddFilterView: ()->
+    @onlyIfReplRunning =>
+      @filterView ?= new FilterView (nsPattern)=>
+        window.protoRepl.executeCode("(do (require 'proto-repl-sayid.core)
+                                          (proto-repl-sayid.core/trace-namespaces-by-pattern \"#{nsPattern}\"))")
+      @filterView.show()
+
+  # Brings up a view to untrace namespaces matching a pattern.
+  displayRemoveFilterView: ()->
+    @onlyIfReplRunning =>
+      @removeFilterView ?= new FilterView (nsPattern)=>
+        window.protoRepl.executeCode("(do (require 'proto-repl-sayid.core)
+                                          (proto-repl-sayid.core/untrace-namespaces-by-pattern \"#{nsPattern}\"))")
+      @removeFilterView.show()
+
+
   # Displays traced namespaces in the REPL
   # TODO this would be better to do in the GUI somehow
   showTracedNamespaces: ->
@@ -143,6 +171,7 @@ module.exports = ProtoReplSayid =
     # Clears out traced data.
   clearCaptured: ->
     @executeFunction("com.billpiel.sayid.core", "ws-clear-log!")
+    @treeView.initiateView(@treeView.toolBarButtonGroups)
 
 
   # Displays data that was traced in the view.
@@ -185,6 +214,8 @@ module.exports = ProtoReplSayid =
     addCommand "clear-captured", => @clearCaptured()
     addCommand "display-last-captured", => @displayLastCaptured()
     addCommand "display-all-captured", => @displayAllCaptured()
+    addCommand "trace-by-pattern", => @displayAddFilterView()
+    addCommand "untrace-by-pattern", => @displayRemoveFilterView()
     addCommand "trace-directory-or-file", (event)=>
       @traceDirectoryOrFile event.target.dataset.path
     addCommand "untrace-directory-or-file", (event)=>
