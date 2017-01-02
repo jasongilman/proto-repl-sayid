@@ -3,6 +3,7 @@
    [clojure.pprint :as pprint]
    [clojure.string :as str]
    [clojure.tools.namespace.find :as ns-find]
+   [clojure.java.shell :as shell]
    [com.billpiel.sayid.core :as sayid]
    [proto-repl.extension-comm :as comm]
    [proto-repl-sayid.truncation :as t]))
@@ -32,7 +33,7 @@
   "Prints the current traced namespaces"
   []
   (println "Currently Traced Namespaces")
-  (pprint/pprint (sort-by str (seq (:ns (sayid/ws-show-traced*))))))
+  (pprint/pprint (sort (map str (seq (:ns (sayid/ws-show-traced*)))))))
 
 (defn- find-ns-by-pattern
   "Looks for namespaces using a simple pattern. * means any characters. Every
@@ -156,6 +157,25 @@
   "The Maximum width that something can be displayed inline"
   60)
 
+(defn- extract-file-from-jar
+  "Detects if a file is in a jar and extracts the jar if necessary. Returns the
+  extracted file or the original file"
+  [file-path]
+  (if-let [[_
+            jar-path
+            partial-jar-path
+            within-file-path] (re-find #"file:(.+/\.m2/repository/(.+\.jar))!/(.+)" file-path)]
+    (let [decompressed-path (str (System/getProperty "user.home")
+                                 "/.lein/tmp-atom-jars/"
+                                 partial-jar-path)
+          decompressed-file-path (str decompressed-path "/" within-file-path)
+          decompressed-path-dir (clojure.java.io/file decompressed-path)]
+      (when-not (.exists decompressed-path-dir)
+        (.mkdirs decompressed-path-dir)
+        (shell/sh "unzip" jar-path "-d" decompressed-path))
+      decompressed-file-path)
+    file-path))
+
 (defn retrieve-node-inline-data
   "Retrieves information about a sayid node for display inline."
   [id]
@@ -167,6 +187,7 @@
           file (if-let [r (.getResource (clojure.lang.RT/baseLoader) file)]
                  (.getPath r)
                  file)
+          file (extract-file-from-jar file)
           args-summary (pr-str arg-map)
           args-summary (subs args-summary 0 (min (count args-summary) (inc MAX_INLINE_WIDTH)))]
       {:file file
@@ -205,9 +226,11 @@
         #'*print-level* 4}
        (let [{:keys [return arg-map]} snode]
          (format (str "<b>%s</b><br><br>"
+                      "Sayid Node Id: %s<br><br>"
                       "<b>Arguments</b><ul>%s</ul>"
                       "<b>Returned:</b><p><code>%s</code></p>")
                  (:name snode)
+                 id
                  (str/join (map arg->html arg-map))
                  (pr-str return)))))))
 
